@@ -1,0 +1,1081 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-12",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 56,
+      "end": 60
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-056",
+      "sequence": 56,
+      "difficulty": "beginner",
+      "domain": "Full-Stack and Production Fundamentals",
+      "topic": "REST and backend API communication",
+      "question": "What is REST, and how do frontend components communicate with backend APIs?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "ecommerce",
+        "banking",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "full-stack",
+        "rest",
+        "http",
+        "client-server",
+        "angular",
+        "api",
+        "status-codes",
+        "resource"
+      ],
+      "answer": {
+        "definition": {
+          "text": "REST organizes resource operations through consistent stateless HTTP interactions."
+        },
+        "motivation": {
+          "whyIntroduced": "Web applications need a predictable contract between independently developed clients and servers. REST-style APIs use resource identifiers, standard HTTP methods, representation formats, and response codes to make interactions easier to understand, cache, test, and evolve. REST is an architectural style rather than a library or a synonym for JSON.",
+          "historicalNote": "REST was described by Roy Fielding in 2000. HTTP existed before REST; REST formalized architectural constraints such as statelessness, a uniform interface and cacheability. In interviews, distinguish practical resource-oriented HTTP APIs from strict conformance to every REST constraint."
+        },
+        "problemSolved": {
+          "before": "An e-commerce UI embeds business logic and database details in each screen or calls ad hoc server actions with inconsistent request and error formats.",
+          "after": "Angular requests resource representations using HttpClient, and an authenticated server validates permissions, applies rules and returns structured HTTP responses.",
+          "benefits": [
+            "Resource-oriented URLs clarify ownership and purpose.",
+            "Status codes and methods make expected interactions visible.",
+            "Independent frontend/backend development is easier with documented contracts.",
+            "Cacheability and stateless requests support scaling when applied correctly."
+          ]
+        },
+        "characteristics": [
+          "Resources are identified by URIs such as /api/orders/123 rather than by component names.",
+          "GET reads; POST commonly creates or triggers server processing; PUT replaces; PATCH partially updates; DELETE requests removal.",
+          "A stateless API must receive enough request context; it should not depend on hidden conversational server state.",
+          "Responses express outcomes using status codes, headers, and representations, not only a boolean in JSON.",
+          "Caching, authorization, idempotency and versioning require explicit design; HTTP method names do not guarantee business safety."
+        ],
+        "simpleAnalogy": {
+          "title": "Library catalog",
+          "explanation": "A borrower looks up a book by catalog number, submits a reservation, and receives a clearly labeled result. They do not need to understand how the library stores its records."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A customer opens order history, filters by date, and views one order.",
+          "implementation": "Angular uses a typed HttpClient GET to /api/orders?page=1. The API authenticates the customer, applies ownership checks, queries a paginated order read model, and returns DTOs. Loading and HTTP error states are handled separately by the UI.",
+          "businessImpact": "Customers see consistent order history without exposing database structure or other customers’ data.",
+          "importantConstraint": "GET should not intentionally mutate orders; pagination and authorization are server responsibilities. Requesting /api/orders/123 does not grant access to order 123."
+        },
+        "useCases": [
+          "Expose order, shipment, account, or appointment data to browser clients.",
+          "Create, update, and cancel records through validated server endpoints.",
+          "Provide contract-tested APIs for mobile clients and partner portals.",
+          "Support pagination, sorting, filtering, and conditional caching of read models.",
+          "Keep sensitive business logic and database access off the browser."
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Customer opens order-history screen.",
+            "Angular component calls OrdersApi.list() and subscribes to the returned Observable.",
+            "Browser sends GET /api/orders?page=1 with applicable credentials.",
+            "API authenticates identity, authorizes resources, and validates pagination.",
+            "Application service queries the database and maps results to an OrderDto.",
+            "API returns JSON with a suitable status and caching policy.",
+            "Angular renders a list or an empty/error state."
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-056-flow",
+              "type": "sequenceDiagram",
+              "title": "REST and backend API communication — end-to-end visualization",
+              "mermaid": "sequenceDiagram\n  actor Customer\n  participant UI as Angular component\n  participant Client as OrdersApi HttpClient\n  participant Server as Orders REST API\n  participant DB as Database\n  Customer->>UI: Open orders\n  UI->>Client: list(1)\n  Client->>Server: GET /api/orders?page=1\n  Server->>Server: Authenticate, authorize, validate\n  Server->>DB: Query owner-scoped orders\n  DB-->>Server: Records\n  Server-->>Client: 200 OrderDto[]\n  Client-->>UI: Observable emits list\n  UI-->>Customer: Render list / empty / error",
+              "caption": "Conceptual learning diagram; authorization, concurrency, deployment and data policies must be tested for the actual project."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "orders-api.service.ts",
+          "runtime": "Angular service sample; configure HttpClient for your Angular app and supply a real authenticated /api/orders backend. GET executes on subscription.",
+          "code": "import { Injectable, inject } from '@angular/core';\nimport { HttpClient, HttpParams } from '@angular/common/http';\nimport { Observable } from 'rxjs';\n\nexport interface OrderDto {\n  id: string;\n  status: 'placed' | 'shipped' | 'delivered';\n  totalMinor: number; // integer cents/paise, currency specified separately\n  currency: string;\n}\n\n@Injectable({ providedIn: 'root' })\nexport class OrdersApi {\n  private readonly http = inject(HttpClient);\n\n  list(page: number): Observable<readonly OrderDto[]> {\n    if (!Number.isSafeInteger(page) || page < 1) {\n      throw new RangeError('page must be a positive integer');\n    }\n    const params = new HttpParams().set('page', String(page));\n    return this.http.get<readonly OrderDto[]>('/api/orders', { params });\n  }\n}\n// The server MUST validate page and enforce per-user order authorization.\n// Configuring HttpClient and authentication depends on the Angular version/app.\n",
+          "explanation": "HttpParams encodes the page query parameter; returning an Observable lets a component use AsyncPipe or subscribe while managing loading/error states. The generic type documents an expected DTO but does not validate untrusted JSON at runtime."
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In the e-commerce portfolio, I would build an OrdersApi service backed by NestJS, with a server-enforced owner filter and an Angular order-history page that handles 200, 401, 403, 500, and empty results.",
+          "evidenceToCollect": [
+            "Recorded network trace for GET /api/orders?page=1 and returned DTO.",
+            "Contract test showing one customer cannot read another customer’s order.",
+            "Component test for loading, empty, success, and error rendering."
+          ],
+          "doNotClaim": "This describes a suggested portfolio exercise, not verified personal work. Describe actual implementation and measured results only after completing them."
+        },
+        "pitfalls": [
+          "Using GET to place an order or charge a card can cause unintended actions via retries or prefetching.",
+          "The HttpClient generic is compile-time typing, not runtime JSON validation.",
+          "Putting credentials or secrets in query strings can leak into logs and browser history.",
+          "Treating a 200 with a domain error object as equivalent to a correctly modeled HTTP error confuses clients.",
+          "Assuming URLs alone protect resources ignores authorization on the backend."
+        ],
+        "whenNotToUse": [
+          "Do not put database credentials or privileged queries in Angular browser code.",
+          "Do not rely on REST method naming alone for idempotent payment semantics.",
+          "Do not force real-time bidirectional telemetry into frequent REST polling when streaming transport is more suitable."
+        ],
+        "alternatives": [
+          {
+            "name": "GraphQL",
+            "bestFor": "Clients need flexible cross-resource selection",
+            "tradeoff": "Adds schema/resolver authorization and cache complexities."
+          },
+          {
+            "name": "WebSocket / SSE",
+            "bestFor": "Streaming changes or live tracking",
+            "tradeoff": "Requires reconnection, ordering, and lifecycle handling."
+          },
+          {
+            "name": "RPC / gRPC",
+            "bestFor": "Strongly typed service-to-service invocation",
+            "tradeoff": "Browser constraints and tightly coupled operation interfaces may apply."
+          },
+          {
+            "name": "REST-style HTTP",
+            "bestFor": "Resource-oriented CRUD and interoperable APIs",
+            "tradeoff": "Over-fetching and multiple requests may be concerns."
+          }
+        ],
+        "testing": {
+          "strategy": "Test the client contract using HttpTestingController; separately test API authentication, authorization, validation and pagination. For browser E2E, use fixture customers and orders. Validate error responses and client loading states.",
+          "testCases": [
+            {
+              "case": "Page 1 request",
+              "expected": "GET /api/orders?page=1 is sent after subscription."
+            },
+            {
+              "case": "Invalid page",
+              "expected": "Negative or noninteger page is rejected before request."
+            },
+            {
+              "case": "Empty list",
+              "expected": "200 [] displays an empty state rather than a failure."
+            },
+            {
+              "case": "Forbidden record",
+              "expected": "Backend denies access to an order owned by another customer."
+            }
+          ],
+          "negativeCases": [
+            "Simulate 401, 403, timeout and 500 responses; confirm non-sensitive errors appear in UI.",
+            "Prove a crafted /api/orders/{otherCustomerOrder} request is denied by server despite a valid login."
+          ],
+          "verificationCommand": "ng test && ng build; run API authorization/contract tests against a test backend"
+        },
+        "followUps": {
+          "beginner": [
+            "When should an Angular application use GET instead of POST?"
+          ],
+          "intermediate": [
+            "How would you handle pagination, retries and conditional requests?"
+          ],
+          "advanced": [
+            "How do you version API contracts across independently deployed clients?"
+          ],
+          "expert": [
+            "When would you introduce a backend-for-frontend, GraphQL, or event-driven read model?"
+          ]
+        },
+        "finalTakeaway": "Use well-defined HTTP resource contracts, but enforce all security and business rules on the server."
+      },
+      "learningOutcomes": [
+        "Explain rest and backend api communication with an accurate mental model and practical motivation.",
+        "Trace a realistic industry workflow across the relevant trust boundaries.",
+        "Implement or adapt the code and verify success, error, and unauthorized cases."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/http/making-requests",
+          "https://angular.dev/guide/http/setting-up",
+          "https://docs.nestjs.com/controllers",
+          "https://docs.nestjs.com/pipes",
+          "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "https://docs.github.com/en/actions",
+          "https://docs.github.com/en/actions/deployment/about-deployments"
+        ],
+        "verificationScope": "Content authored with Angular, NestJS, PostgreSQL and GitHub Actions documentation as references. JSON Schema, sample syntax and example-specific checks are evaluated separately. Full Angular application integration tests and Mermaid browser rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-057",
+      "sequence": 57,
+      "difficulty": "beginner",
+      "domain": "Full-Stack and Production Fundamentals",
+      "topic": "DTO validation and database invariants",
+      "question": "What is the difference between frontend validation, backend validation and database constraints?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "healthcare",
+        "banking",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "full-stack",
+        "validation",
+        "dto",
+        "database",
+        "constraints",
+        "security",
+        "trust-boundary"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Validation layers protect usability, business rules, and persisted invariants."
+        },
+        "motivation": {
+          "whyIntroduced": "Form input is unreliable: browsers can be bypassed, APIs can be called directly, competing requests can invalidate prior checks, and application bugs can attempt inconsistent writes. Different validation layers exist to improve user experience, protect business rules, and guarantee durable invariants even under concurrency.",
+          "historicalNote": "Client/server validation is a longstanding web pattern. Relational database constraints such as NOT NULL, UNIQUE, CHECK and foreign keys add enforcement inside storage; TypeScript DTO types alone are not runtime validation."
+        },
+        "problemSolved": {
+          "before": "An appointment screen prevents duplicate booking only by disabling already-used slots; direct API requests or concurrent users still create conflicting bookings.",
+          "after": "Angular validates UX fields, API validates shape and authorization, business logic checks scheduling conditions, and the database enforces unique slot occupancy.",
+          "benefits": [
+            "Immediate and accessible feedback for users.",
+            "Protection against malicious or malformed API requests.",
+            "Domain rules remain consistent across all clients.",
+            "Database rejects invalid committed state even during races."
+          ]
+        },
+        "characteristics": [
+          "Frontend validation is untrusted and improves UX; it cannot enforce authorization.",
+          "DTO/runtime validation checks received data types, required fields, ranges and allowed formats.",
+          "Business validation evaluates domain rules such as patient eligibility and clinician working hours.",
+          "Database constraints enforce structural invariants such as uniqueness and referential integrity.",
+          "Server-side transactions and concurrency control are necessary when correctness spans multiple rows or operations."
+        ],
+        "simpleAnalogy": {
+          "title": "Concert seat booking",
+          "explanation": "The booking form tells you if a seat number is valid, the ticket desk checks eligibility, and the final booking ledger prevents two customers from owning the same seat."
+        },
+        "industryExample": {
+          "industry": "healthcare",
+          "scenario": "Two patients attempt to reserve the same clinician and time slot within milliseconds.",
+          "implementation": "Angular checks required fields and shows a busy indicator. NestJS parses and validates an appointment request, authorizes the patient, and checks clinic scheduling rules. A unique database key on clinician_id and starts_at prevents two committed bookings for the same slot; a conflict maps to HTTP 409.",
+          "businessImpact": "Patients receive helpful errors while the platform preserves appointment integrity even during competing requests.",
+          "importantConstraint": "The unique-slot model assumes one clinician cannot host concurrent appointments at exactly the same start time; actual clinics may use rooms, capacity, duration and cancellation rules that require a richer model."
+        },
+        "useCases": [
+          "Registration forms with email and password requirements.",
+          "Appointment scheduling with overlapping requests.",
+          "Tenant-scoped unique organization identifiers.",
+          "Banking transactions with referential integrity and nonnegative amounts where appropriate.",
+          "Inventory reservations with constraints and transaction handling."
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Patient selects a clinician, slot and booking action in Angular.",
+            "Angular checks required inputs to provide immediate feedback.",
+            "POST /api/appointments reaches an authenticated backend.",
+            "Runtime validation rejects malformed DTOs with 400.",
+            "Authorization and scheduling rules are evaluated in the domain service.",
+            "Database attempts the insert under transaction with UNIQUE clinician/slot constraint.",
+            "API maps duplicate-key conflicts to 409 and UI explains the slot is unavailable."
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-057-flow",
+              "type": "sequenceDiagram",
+              "title": "DTO validation and database invariants — end-to-end visualization",
+              "mermaid": "sequenceDiagram\n  actor Patient\n  participant UI as Angular form\n  participant API as Appointment API\n  participant Service as Scheduling service\n  participant DB as Database\n  Patient->>UI: Select slot\n  UI->>UI: Required-field checks\n  UI->>API: POST appointment DTO\n  API->>API: Validate input and identity\n  API->>Service: Book authorized appointment\n  Service->>DB: INSERT with UNIQUE constraint\n  alt Slot available\n    DB-->>API: Commit successful\n    API-->>UI: 201 Created\n  else Duplicate slot\n    DB-->>API: Unique constraint violation\n    API-->>UI: 409 Conflict\n  end\n  UI-->>Patient: Confirmation or conflict message",
+              "caption": "Conceptual learning diagram; authorization, concurrency, deployment and data policies must be tested for the actual project."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "appointment-validation.ts",
+          "runtime": "Framework-independent TypeScript runtime parser plus illustrative PostgreSQL unique-index migration; integrate with NestJS and a real database.",
+          "code": "// Simplified server-side domain validation (framework-independent TypeScript).\ninterface AppointmentInput {\n  clinicianId: string;\n  startsAt: string;\n}\n\nexport function parseAppointment(value: unknown): AppointmentInput {\n  if (typeof value !== 'object' || value === null) {\n    throw new Error('Request body must be an object');\n  }\n  const data = value as Record<string, unknown>;\n  if (typeof data.clinicianId !== 'string' ||\n      !/^[a-zA-Z0-9_-]{1,64}$/.test(data.clinicianId)) {\n    throw new Error('Invalid clinicianId');\n  }\n  if (typeof data.startsAt !== 'string' ||\n      !/^\\d{4}-\\d{2}-\\d{2}T/.test(data.startsAt) ||\n      !Number.isFinite(Date.parse(data.startsAt))) {\n    throw new Error('Invalid startsAt');\n  }\n  return { clinicianId: data.clinicianId, startsAt: data.startsAt };\n}\n\n// PostgreSQL domain invariant (apply through a database migration):\n// CREATE UNIQUE INDEX appointments_clinician_start_uq\n//   ON appointments (clinician_id, starts_at);\n// On unique violation, backend maps the database conflict to HTTP 409.\n// Real scheduling also needs authorization, capacity and overlap rules.\n",
+          "explanation": "Unknown input must be narrowed at runtime; a TypeScript interface alone does not validate network data. The unique index is the final concurrency backstop for this simplified single-slot model, not a substitute for complete scheduling rules."
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a healthcare appointment simulation, I would build a reactive form, implement server-side DTO validation and a unique clinician/slot constraint, then use two concurrent requests to prove that only one booking succeeds.",
+          "evidenceToCollect": [
+            "Screenshot of accessible reactive form validation.",
+            "API test for malformed, unauthorized and duplicate booking requests.",
+            "Database integration test proving a concurrent duplicate slot cannot both commit."
+          ],
+          "doNotClaim": "This describes a suggested portfolio exercise, not verified personal work. Describe actual implementation and measured results only after completing them."
+        },
+        "pitfalls": [
+          "Assuming disabled form controls prevent direct API calls.",
+          "Checking availability then inserting without a constraint or transaction creates a race condition.",
+          "Using TypeScript types as a replacement for runtime request validation.",
+          "Making all validation errors HTTP 500 hides actionable client mistakes.",
+          "Applying simplistic UNIQUE keys to complex duration-based schedules can falsely reject or allow bookings."
+        ],
+        "whenNotToUse": [
+          "Never rely exclusively on browser validation for correctness or security.",
+          "Never bypass database constraints because the API already checks values.",
+          "Do not return raw database constraint errors with patient details to clients."
+        ],
+        "alternatives": [
+          {
+            "name": "Angular reactive form validators",
+            "bestFor": "Fast, accessible user feedback",
+            "tradeoff": "Can be bypassed and sees potentially stale data."
+          },
+          {
+            "name": "NestJS ValidationPipe with DTO validators",
+            "bestFor": "Centralized request shape validation",
+            "tradeoff": "Requires correctly configured runtime decorators and transformations."
+          },
+          {
+            "name": "Domain service checks",
+            "bestFor": "Rules involving multiple domain entities",
+            "tradeoff": "Must be concurrency-safe and independently tested."
+          },
+          {
+            "name": "Database constraints / transactions",
+            "bestFor": "Preserve persisted invariants under races",
+            "tradeoff": "Cannot explain all user-facing business validation alone."
+          }
+        ],
+        "testing": {
+          "strategy": "Unit-test runtime parsing and form validators, API-test authorization and error mapping, and database-test concurrent booking attempts with an actual database engine.",
+          "testCases": [
+            {
+              "case": "Valid request",
+              "expected": "Well-formed clinicianId and ISO timestamp pass shape validation."
+            },
+            {
+              "case": "Invalid clinician identifier",
+              "expected": "Unexpected characters fail parser."
+            },
+            {
+              "case": "Duplicate slot",
+              "expected": "One insert commits, concurrent conflicting insert is rejected."
+            },
+            {
+              "case": "Unauthorized patient",
+              "expected": "Backend returns 403 without creating an appointment."
+            }
+          ],
+          "negativeCases": [
+            "Submit a forged payload bypassing Angular controls; API must reject it.",
+            "Simulate two bookings for same clinician/start; assert exactly one successful commit and a 409 for the other."
+          ],
+          "verificationCommand": "ng test && ng build; run NestJS API tests plus PostgreSQL constraint/concurrency integration tests"
+        },
+        "followUps": {
+          "beginner": [
+            "Why must backend validate fields already checked by Angular?"
+          ],
+          "intermediate": [
+            "How do DTO validators differ from business-rule validation?"
+          ],
+          "advanced": [
+            "What race conditions remain after an availability read?"
+          ],
+          "expert": [
+            "How do exclusion constraints, transactions, and serializable isolation handle overlapping appointments?"
+          ]
+        },
+        "finalTakeaway": "Apply validation at every trust boundary; enforce durable invariants in the database."
+      },
+      "learningOutcomes": [
+        "Explain dto validation and database invariants with an accurate mental model and practical motivation.",
+        "Trace a realistic industry workflow across the relevant trust boundaries.",
+        "Implement or adapt the code and verify success, error, and unauthorized cases."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/http/making-requests",
+          "https://angular.dev/guide/http/setting-up",
+          "https://docs.nestjs.com/controllers",
+          "https://docs.nestjs.com/pipes",
+          "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "https://docs.github.com/en/actions",
+          "https://docs.github.com/en/actions/deployment/about-deployments"
+        ],
+        "verificationScope": "Content authored with Angular, NestJS, PostgreSQL and GitHub Actions documentation as references. JSON Schema, sample syntax and example-specific checks are evaluated separately. Full Angular application integration tests and Mermaid browser rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-058",
+      "sequence": 58,
+      "difficulty": "beginner",
+      "domain": "Full-Stack and Production Fundamentals",
+      "topic": "Relational databases and keys",
+      "question": "What is a relational database, and how do primary keys and foreign keys work?",
+      "questionType": "conceptual",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "full-stack",
+        "sql",
+        "relational-database",
+        "primary-key",
+        "foreign-key",
+        "referential-integrity",
+        "transactions"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Relational databases organize related records using tables and constraints."
+        },
+        "motivation": {
+          "whyIntroduced": "Applications store multiple related kinds of records that must remain consistent. Without explicit keys, duplicate identification, orphan rows and accidental cross-record associations are easier to create. Relational tables and declarative constraints make relationships queryable and protect data integrity.",
+          "historicalNote": "Relational modeling stems from E. F. Codd’s work around 1970. SQL relational systems later standardized primary keys, foreign keys, transactions, and query operations. A foreign key is a data integrity guarantee within its database, not an authorization system."
+        },
+        "problemSolved": {
+          "before": "An order stores a manually typed customer name in every row; names change, duplicates arise, and data has no reliable relationship.",
+          "after": "Customers have stable primary keys; orders reference customers by foreign key; the database rejects orders pointing to nonexistent customers.",
+          "benefits": [
+            "Stable record identity supports consistent joins and updates.",
+            "Foreign keys prevent orphaned references within the modeled relationship.",
+            "Transactions group related state changes.",
+            "Indexes support efficient lookups when correctly chosen."
+          ]
+        },
+        "characteristics": [
+          "A primary key uniquely identifies each row and must be non-null.",
+          "A foreign key requires referenced keys to exist, subject to referential actions and transaction semantics.",
+          "Unique constraints protect additional business identifiers, which need not be the primary key.",
+          "Joins combine rows according to relationships, but query design and indexes affect performance.",
+          "Transactions provide atomicity and isolation guarantees, whose details depend on the database and isolation level."
+        ],
+        "simpleAnalogy": {
+          "title": "Library loan register",
+          "explanation": "Each library book has a unique ID, and every loan record stores the ID of an existing book. If a book ID does not exist, the system rejects that loan relationship."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A banking training portal must show customers and their linked accounts, without mixing data between customers.",
+          "implementation": "Create customer and account tables with primary keys and a foreign key from accounts.customer_id to customers.id. The Angular UI asks the backend for accounts; the backend authorizes current customer and uses a parameterized owner-filtered query.",
+          "businessImpact": "Records have predictable ownership relationships, and inconsistent account links cannot be committed in this simplified schema.",
+          "importantConstraint": "Foreign keys do not establish whether a logged-in person is permitted to see an account. Authorization is enforced by the service layer or database row-level security as appropriate."
+        },
+        "useCases": [
+          "Linking customers to bank accounts and transactions.",
+          "Associating shopping orders with user and order-item rows.",
+          "Linking clinic visits to patient and clinician records.",
+          "Tracking shipments and status events.",
+          "Associating SaaS users, memberships and tenant organizations."
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Frontend requests accounts for the current authenticated customer.",
+            "API derives customer identity from trusted authentication context.",
+            "Server queries accounts with customer_id scoped to that identity.",
+            "Database enforces customer primary keys and account foreign keys.",
+            "Query returns matching account rows.",
+            "Backend creates a safe account DTO, avoiding unrelated sensitive columns.",
+            "Angular displays accessible account cards."
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-058-flow",
+              "type": "erDiagram",
+              "title": "Relational databases and keys — end-to-end visualization",
+              "mermaid": "erDiagram\n  CUSTOMERS ||--o{ ACCOUNTS : owns\n  ACCOUNTS ||--o{ TRANSACTIONS : has\n  CUSTOMERS {\n    TEXT id PK\n    TEXT display_name\n  }\n  ACCOUNTS {\n    TEXT id PK\n    TEXT customer_id FK\n    TEXT currency\n  }\n  TRANSACTIONS {\n    TEXT id PK\n    TEXT account_id FK\n    INTEGER amount_minor\n  }",
+              "caption": "Conceptual learning diagram; authorization, concurrency, deployment and data policies must be tested for the actual project."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "sql",
+          "filename": "banking-training-schema.sql",
+          "runtime": "PostgreSQL-compatible schema demonstration with fictional identifiers and integer minor-unit amounts. Not a production banking ledger.",
+          "code": "-- PostgreSQL schema for a fictional banking training application.\nCREATE TABLE customers (\n  id TEXT PRIMARY KEY,\n  display_name TEXT NOT NULL\n);\n\nCREATE TABLE accounts (\n  id TEXT PRIMARY KEY,\n  customer_id TEXT NOT NULL REFERENCES customers(id) ON DELETE RESTRICT,\n  currency CHAR(3) NOT NULL,\n  UNIQUE (id, customer_id)\n);\n\nCREATE TABLE transactions (\n  id TEXT PRIMARY KEY,\n  account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,\n  amount_minor BIGINT NOT NULL\n);\n\nINSERT INTO customers (id, display_name) VALUES ('cust-01', 'Demo Customer');\nINSERT INTO accounts (id, customer_id, currency)\nVALUES ('acct-01', 'cust-01', 'INR');\nINSERT INTO transactions (id, account_id, amount_minor)\nVALUES ('txn-01', 'acct-01', 2500);\n\nSELECT a.id, a.currency, t.id AS transaction_id, t.amount_minor\nFROM accounts AS a\nLEFT JOIN transactions AS t ON t.account_id = a.id\nWHERE a.customer_id = 'cust-01';\n-- In a real API, use parameterized SQL and server-derived customer identity.\n",
+          "explanation": "The customer ID is the primary key; account.customer_id is a foreign key. A transaction points to an existing account. LEFT JOIN retains an account even when it has no transactions. Real payment ledgers require stronger accounting design and controlled posting invariants."
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In the banking portfolio I would create customers, accounts and transaction-history tables using migrations, then prove foreign keys reject orphan accounts and an API never trusts a customer_id supplied by the browser.",
+          "evidenceToCollect": [
+            "ER diagram with keys and relationships.",
+            "Schema migration plus INSERT/SELECT demonstration in a test database.",
+            "API authorization test proving customer A cannot request customer B’s accounts."
+          ],
+          "doNotClaim": "This describes a suggested portfolio exercise, not verified personal work. Describe actual implementation and measured results only after completing them."
+        },
+        "pitfalls": [
+          "Confusing foreign keys with access control; both are needed for different reasons.",
+          "Using floating-point numeric types for money calculations.",
+          "Excessive cascading deletes can erase audit-required data.",
+          "Missing indexes on important filtering keys can cause slow reads.",
+          "Assuming one table or one database is appropriate for every workload."
+        ],
+        "whenNotToUse": [
+          "Do not use foreign keys as the sole mechanism of row-level authorization.",
+          "Do not cascade-delete regulated financial histories without retention and audit review.",
+          "Do not concatenate untrusted user input into SQL strings."
+        ],
+        "alternatives": [
+          {
+            "name": "Relational SQL",
+            "bestFor": "Strong consistency and structured relationships",
+            "tradeoff": "Schema and migrations require care."
+          },
+          {
+            "name": "Document database",
+            "bestFor": "Flexible aggregate-oriented documents",
+            "tradeoff": "Cross-document relationships and transactions vary by engine."
+          },
+          {
+            "name": "Event log / ledger",
+            "bestFor": "Immutable domain event or accounting history",
+            "tradeoff": "Read models and replay add design complexity."
+          },
+          {
+            "name": "In-memory cache",
+            "bestFor": "Speeding repeated non-authoritative reads",
+            "tradeoff": "Not a durable source of truth."
+          }
+        ],
+        "testing": {
+          "strategy": "Use a disposable PostgreSQL database for migration, key and referential tests; separately test the API authorization boundary. Show both a valid join and a rejected orphan insert.",
+          "testCases": [
+            {
+              "case": "Valid foreign key",
+              "expected": "Account referencing cust-01 inserts successfully."
+            },
+            {
+              "case": "Orphan account",
+              "expected": "Account referencing missing customer is rejected."
+            },
+            {
+              "case": "Duplicate primary key",
+              "expected": "Second customer with same id is rejected."
+            },
+            {
+              "case": "Left join",
+              "expected": "Customer account appears with null transaction columns if no transactions exist."
+            }
+          ],
+          "negativeCases": [
+            "Try INSERT accounts with nonexistent customer_id and assert FK violation.",
+            "Prove a logged-in user cannot query another customer’s accounts even though FK constraints are valid."
+          ],
+          "verificationCommand": "psql -v ON_ERROR_STOP=1 -f banking-training-schema.sql; run database and API authorization integration tests"
+        },
+        "followUps": {
+          "beginner": [
+            "Can one table have more than one foreign key?"
+          ],
+          "intermediate": [
+            "When should you introduce composite keys or a join table?"
+          ],
+          "advanced": [
+            "How do you design indexes for large owner-filtered transaction queries?"
+          ],
+          "expert": [
+            "How do tenant isolation, referential integrity and immutable ledgers interact?"
+          ]
+        },
+        "finalTakeaway": "Primary keys identify records; foreign keys preserve links, not access permissions."
+      },
+      "learningOutcomes": [
+        "Explain relational databases and keys with an accurate mental model and practical motivation.",
+        "Trace a realistic industry workflow across the relevant trust boundaries.",
+        "Implement or adapt the code and verify success, error, and unauthorized cases."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/http/making-requests",
+          "https://angular.dev/guide/http/setting-up",
+          "https://docs.nestjs.com/controllers",
+          "https://docs.nestjs.com/pipes",
+          "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "https://docs.github.com/en/actions",
+          "https://docs.github.com/en/actions/deployment/about-deployments"
+        ],
+        "verificationScope": "Content authored with Angular, NestJS, PostgreSQL and GitHub Actions documentation as references. JSON Schema, sample syntax and example-specific checks are evaluated separately. Full Angular application integration tests and Mermaid browser rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-059",
+      "sequence": 59,
+      "difficulty": "beginner",
+      "domain": "Full-Stack and Production Fundamentals",
+      "topic": "Git collaboration, CI/CD and environments",
+      "question": "What are Git branches, pull requests, CI/CD pipelines and application environments?",
+      "questionType": "conceptual",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "saas",
+        "logistics",
+        "ecommerce"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "full-stack",
+        "git",
+        "pull-request",
+        "ci",
+        "cd",
+        "deployment",
+        "environments",
+        "quality-gates"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Version control and delivery pipelines coordinate safe software changes."
+        },
+        "motivation": {
+          "whyIntroduced": "Teams need to collaborate without overwriting work, review changes before merging, and verify every release repeatably. Git provides commit history and branches; pull requests provide review and integration checkpoints; CI automates validation, while deployment/release processes manage operational exposure.",
+          "historicalNote": "Git was created in 2005 for distributed source control. Modern CI/CD integrates automated builds, tests, artifact publication and deployment. Continuous delivery means software is kept releasable; continuous deployment automatically releases qualifying changes without manual approval."
+        },
+        "problemSolved": {
+          "before": "Engineers copy files between computers and manually upload frontend bundles to production, with uncertain versions and no repeatable validation.",
+          "after": "Each change is committed on a branch, reviewed through a pull request, built and tested automatically, and deployed through traceable environment-specific steps.",
+          "benefits": [
+            "Version history enables comparison and rollback planning.",
+            "Reviews share knowledge and detect design and security issues.",
+            "Automated checks reduce repeated manual mistakes.",
+            "Environment separation permits realistic testing before production exposure."
+          ]
+        },
+        "characteristics": [
+          "Commits record snapshots and authorship metadata; branches are references to commit histories.",
+          "Pull requests propose integrating changes and allow discussion, checks and approval.",
+          "Continuous integration typically builds, lints and tests every proposed change.",
+          "Continuous delivery prepares releasable artifacts; deployment/release can be independently controlled.",
+          "Development, staging and production must have isolated credentials, data policies and appropriate access."
+        ],
+        "simpleAnalogy": {
+          "title": "Publishing a newspaper",
+          "explanation": "Writers work on drafts, editors review, proofreaders catch mistakes, and the publishing team distributes an approved edition. Copies in a test room are not the public edition."
+        },
+        "industryExample": {
+          "industry": "saas",
+          "scenario": "An enterprise SaaS team releases a new workspace-switcher feature without disrupting existing tenants.",
+          "implementation": "A developer creates a short-lived feature branch and pull request. CI installs locked dependencies, runs Angular tests and build, checks quality and reviews changes. A deployment artifact is promoted to staging and tested using synthetic tenants before controlled production release.",
+          "businessImpact": "A repeatable pipeline improves confidence and traceability while making it easier to locate which release introduced a defect.",
+          "importantConstraint": "Passing CI does not prove security or production safety. Secrets must stay out of source and logs; environment configuration does not authorize tenant access."
+        },
+        "useCases": [
+          "Collaborating on Angular feature work across engineers.",
+          "Preventing untested pull requests from entering the main branch.",
+          "Building reproducible frontend and backend artifacts.",
+          "Deploying to dev/staging/production with appropriate gates.",
+          "Auditing when and by whom a version was released."
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Engineer creates a feature branch from current main.",
+            "Developer commits Angular workspace-switcher changes and pushes branch.",
+            "Pull request triggers CI workflow with npm ci, tests and build.",
+            "Reviewer checks code and security boundaries, then approves.",
+            "Merge produces a release candidate artifact.",
+            "Staging deployment uses synthetic tenant accounts for smoke testing.",
+            "Authorized release promotes or deploys the approved artifact to production."
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-059-flow",
+              "type": "flowchart",
+              "title": "Git collaboration, CI/CD and environments — end-to-end visualization",
+              "mermaid": "flowchart TD\n  A[Feature branch and commit] --> B[Pull request]\n  B --> C[CI install lint test build]\n  C --> D{Checks pass?}\n  D -->|No| E[Fix change]\n  E --> B\n  D -->|Yes| F[Review and merge]\n  F --> G[Build immutable artifact]\n  G --> H[Deploy staging]\n  H --> I[Smoke and integration checks]\n  I --> J{Release approval?}\n  J -->|Yes| K[Production deployment]\n  J -->|No| L[Hold and investigate]",
+              "caption": "Conceptual learning diagram; authorization, concurrency, deployment and data policies must be tested for the actual project."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "yaml",
+          "filename": ".github/workflows/angular-ci.yml",
+          "runtime": "Illustrative GitHub Actions workflow; expects Angular npm scripts, a lockfile and configured test runner. GitHub runner and supported Node versions can evolve.",
+          "code": "# .github/workflows/angular-ci.yml\nname: Angular CI\non:\n  pull_request:\n  push:\n    branches: [main]\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n          cache: npm\n      - run: npm ci\n      - run: npm run lint --if-present\n      - run: npm test -- --watch=false\n      - run: npm run build\n# Use pinned commit SHAs for third-party actions in higher-assurance CI.\n# This workflow tests/builds; deployment is a separate gated workflow.\n",
+          "explanation": "A pull request or push to main runs deterministic dependency installation, tests and build. This is CI only: it does not automatically deploy or enable a feature. Production deployments should include credentials protection, approvals and rollback strategy."
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "For the multi-tenant SaaS portfolio I would use feature branches, protected main, PR reviews, CI quality checks, a staging environment with synthetic tenants, and a separately controlled production deployment.",
+          "evidenceToCollect": [
+            "Pull request screenshot with a passing CI check and reviewer feedback.",
+            "Build artifact and staging deployment log tied to a commit SHA.",
+            "Documented rollback drill or previous-version redeployment."
+          ],
+          "doNotClaim": "This describes a suggested portfolio exercise, not verified personal work. Describe actual implementation and measured results only after completing them."
+        },
+        "pitfalls": [
+          "Using npm install rather than npm ci in CI can produce drifting dependency trees.",
+          "Keeping production secrets in repository files or client bundles exposes them.",
+          "Automatically releasing after unit tests alone ignores integration and operational risks.",
+          "Confusing a successful deployment with successful user exposure; feature flags can separate them.",
+          "Promoting independently rebuilt artifacts can introduce a different binary than what was tested."
+        ],
+        "whenNotToUse": [
+          "Never commit secrets, customer data or real private keys to Git.",
+          "Do not bypass code review and production approval because CI is green.",
+          "Do not use production databases as developer or staging test environments."
+        ],
+        "alternatives": [
+          {
+            "name": "Trunk-based development",
+            "bestFor": "Frequent small changes with feature flags",
+            "tradeoff": "Needs disciplined fast checks."
+          },
+          {
+            "name": "Long-lived feature branches",
+            "bestFor": "Occasional isolated workstreams",
+            "tradeoff": "High merge conflict and integration drift risk."
+          },
+          {
+            "name": "Continuous delivery",
+            "bestFor": "Manual approval before production",
+            "tradeoff": "Additional release operations."
+          },
+          {
+            "name": "Continuous deployment",
+            "bestFor": "Mature automation and low-risk continuous changes",
+            "tradeoff": "Requires robust rollback, monitoring and safety controls."
+          }
+        ],
+        "testing": {
+          "strategy": "Validate workflow syntax and run it on a temporary PR; confirm failed tests block merge and successful builds produce traceable artifacts. Perform a staging smoke test with synthetic tenant data.",
+          "testCases": [
+            {
+              "case": "Valid PR",
+              "expected": "CI installs dependencies and passes tests/build."
+            },
+            {
+              "case": "Broken unit test",
+              "expected": "Workflow fails and branch protection prevents merge."
+            },
+            {
+              "case": "Missing secret",
+              "expected": "Workflow fails safely without displaying credentials."
+            },
+            {
+              "case": "Staging release",
+              "expected": "Deployed build corresponds to approved source revision."
+            }
+          ],
+          "negativeCases": [
+            "Introduce a failing test and verify CI rejects the PR.",
+            "Confirm repository and frontend bundle do not contain production credentials."
+          ],
+          "verificationCommand": "npm ci && npm test -- --watch=false && npm run build; validate GitHub Actions workflow with actionlint if available"
+        },
+        "followUps": {
+          "beginner": [
+            "What is the difference between git commit, push, and pull request?"
+          ],
+          "intermediate": [
+            "How would you cache dependencies and protect main with required checks?"
+          ],
+          "advanced": [
+            "How can feature flags and canary deployments reduce production risk?"
+          ],
+          "expert": [
+            "How would you guarantee artifact provenance and supply-chain integrity across multi-region releases?"
+          ]
+        },
+        "finalTakeaway": "Review small changes, verify them automatically, and deploy approved artifacts with traceability."
+      },
+      "learningOutcomes": [
+        "Explain git collaboration, ci/cd and environments with an accurate mental model and practical motivation.",
+        "Trace a realistic industry workflow across the relevant trust boundaries.",
+        "Implement or adapt the code and verify success, error, and unauthorized cases."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/http/making-requests",
+          "https://angular.dev/guide/http/setting-up",
+          "https://docs.nestjs.com/controllers",
+          "https://docs.nestjs.com/pipes",
+          "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "https://docs.github.com/en/actions",
+          "https://docs.github.com/en/actions/deployment/about-deployments"
+        ],
+        "verificationScope": "Content authored with Angular, NestJS, PostgreSQL and GitHub Actions documentation as references. JSON Schema, sample syntax and example-specific checks are evaluated separately. Full Angular application integration tests and Mermaid browser rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-060",
+      "sequence": 60,
+      "difficulty": "beginner",
+      "domain": "Full-Stack and Production Fundamentals",
+      "topic": "End-to-end browser-to-database data flow",
+      "question": "Explain how a button click in Angular leads to backend validation, database storage and UI updates.",
+      "questionType": "scenario",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "logistics",
+        "ecommerce",
+        "healthcare"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "full-stack",
+        "angular",
+        "end-to-end",
+        "httpclient",
+        "validation",
+        "database",
+        "ui-state",
+        "observability"
+      ],
+      "answer": {
+        "definition": {
+          "text": "A user action traverses UI, API, database, and back."
+        },
+        "motivation": {
+          "whyIntroduced": "An application feature is not complete when a button responds visually; it must carry intent across browser and server boundaries safely. Engineers need to understand the flow to fix bugs, design trustworthy validation, interpret status codes, and keep UI state consistent with persisted results.",
+          "historicalNote": "Classic three-tier web architecture separates presentation, application logic and persistence. Angular, REST APIs, and modern databases supply common implementations, but security checks and distributed behavior depend on the chosen system."
+        },
+        "problemSolved": {
+          "before": "A dispatcher clicks “Mark Delivered” and Angular changes the status locally, even if the server rejects the request; other users see contradictory data.",
+          "after": "The UI submits a validated intention, the API authorizes and persists the transition, then the UI displays the confirmed canonical result or an actionable failure.",
+          "benefits": [
+            "Clear ownership of validation and authorization.",
+            "The database is authoritative for persisted transitions.",
+            "Loading and error states prevent false confirmations.",
+            "Traceable request IDs simplify operational diagnosis."
+          ]
+        },
+        "characteristics": [
+          "UI event handlers initiate user intent but cannot prove a persisted business outcome.",
+          "HttpClient Observables make request, response and error paths explicit.",
+          "Backend authentication/authorization and domain validation protect the trust boundary.",
+          "Database transactions and constraints preserve committed state.",
+          "The UI reconciles from server responses and can invalidate/refetch stale reads when necessary."
+        ],
+        "simpleAnalogy": {
+          "title": "Parcel handoff receipt",
+          "explanation": "A courier submits a signed delivery report, a central office verifies and records it, and only then does the tracker show the package as delivered. A button press alone is not proof of delivery."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A dispatcher marks a fictional shipment delivered from an Angular control-tower dashboard.",
+          "implementation": "Angular sends PATCH /api/shipments/{id}/status with desired status and an audit reason. Server checks dispatcher identity, shipment assignment, permitted transition and record version, writes the update within a transaction, emits an audit event, and returns the updated DTO. UI shows success only on confirmed response.",
+          "businessImpact": "Operators receive reliable status feedback and investigators can reconstruct who requested and completed the transition.",
+          "importantConstraint": "A simple demonstration can omit distributed event delivery, but in production updating the database and publishing a message need a reliable strategy such as a transactional outbox. UI optimistic updates require explicit rollback behavior."
+        },
+        "useCases": [
+          "Shipment delivery confirmation with dispatch approval.",
+          "E-commerce order status transition from packed to shipped.",
+          "Healthcare appointment cancellation with a persisted record.",
+          "Banking beneficiary nickname changes where backend approval may be required.",
+          "SaaS role updates and organization settings changes."
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Dispatcher clicks Mark Delivered on shipment detail.",
+            "Component checks UI-level prerequisites and sets submitting state.",
+            "Angular service sends an authenticated PATCH request with a typed payload.",
+            "API authenticates dispatcher, authorizes shipment assignment, and validates state transition.",
+            "Database transaction updates the shipment and writes an audit record; conflicts return 409.",
+            "Backend returns the updated shipment DTO after successful commit.",
+            "UI updates its state from the returned DTO and shows confirmation; on error, it preserves original state and explains the failure."
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-060-flow",
+              "type": "sequenceDiagram",
+              "title": "End-to-end browser-to-database data flow — end-to-end visualization",
+              "mermaid": "sequenceDiagram\n  actor Dispatcher\n  participant UI as Angular component\n  participant HTTP as ShipmentApi\n  participant API as Backend controller\n  participant Domain as Shipment service\n  participant DB as Database\n  Dispatcher->>UI: Click Mark Delivered\n  UI->>UI: Set loading\n  UI->>HTTP: markDelivered(id)\n  HTTP->>API: PATCH shipment status\n  API->>Domain: Validate identity and transition\n  Domain->>DB: UPDATE shipment + INSERT audit (tx)\n  alt Success\n    DB-->>Domain: Commit\n    Domain-->>API: Updated shipment DTO\n    API-->>HTTP: 200 OK\n    HTTP-->>UI: Observable next\n    UI-->>Dispatcher: Show confirmed delivered\n  else Rejected or conflict\n    DB-->>Domain: Reject/rollback\n    API-->>HTTP: 403 or 409\n    HTTP-->>UI: Observable error\n    UI-->>Dispatcher: Show issue; no false confirmation\n  end",
+              "caption": "Conceptual learning diagram; authorization, concurrency, deployment and data policies must be tested for the actual project."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shipment-detail.component.ts",
+          "runtime": "Angular standalone component teaching sample; configure HttpClient, create an authenticated shipment status endpoint and test all API responses.",
+          "code": "import { Component, Injectable, inject, signal } from '@angular/core';\nimport { HttpClient } from '@angular/common/http';\nimport { finalize } from 'rxjs';\n\ninterface ShipmentDto {\n  id: string;\n  status: 'in_transit' | 'delivered';\n  version: number;\n}\n\n@Injectable({ providedIn: 'root' })\nexport class ShipmentApi {\n  private readonly http = inject(HttpClient);\n  markDelivered(shipment: ShipmentDto) {\n    return this.http.patch<ShipmentDto>(\n      `/api/shipments/${encodeURIComponent(shipment.id)}/status`,\n      { status: 'delivered', expectedVersion: shipment.version }\n    );\n  }\n}\n\n@Component({\n  standalone: true,\n  selector: 'app-shipment-detail',\n  template: `\n    @if (shipment(); as s) {\n      <p>Shipment {{ s.id }}: {{ s.status }}</p>\n      <button type=\"button\" [disabled]=\"saving() || s.status === 'delivered'\"\n              (click)=\"markDelivered()\">Mark Delivered</button>\n    }\n    @if (saving()) { <p role=\"status\">Saving...</p> }\n    @if (error()) { <p role=\"alert\">{{ error() }}</p> }\n  `\n})\nexport class ShipmentDetailComponent {\n  private readonly api = inject(ShipmentApi);\n  readonly shipment = signal<ShipmentDto | null>(\n    { id: 'demo-123', status: 'in_transit', version: 1 });\n  readonly saving = signal(false);\n  readonly error = signal<string | null>(null);\n\n  markDelivered(): void {\n    const current = this.shipment();\n    if (!current || this.saving() || current.status === 'delivered') return;\n    this.error.set(null);\n    this.saving.set(true);\n    this.api.markDelivered(current).pipe(\n      finalize(() => this.saving.set(false))\n    ).subscribe({\n      next: updated => this.shipment.set(updated),\n      error: () => this.error.set('Update failed. Refresh and try again.')\n    });\n  }\n}\n// Backend MUST authenticate, authorize, validate version/state and commit a\n// transaction before returning the updated DTO. UI state is not authoritative.\n",
+          "explanation": "The component sets saving state, calls an injected API client, and uses the confirmed server DTO as the new Signal value. finalize clears the spinner on completion or error. The server owns authorization and transition validation; it should reject stale expectedVersion values with HTTP 409."
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In the logistics control-tower portfolio I would implement a shipment status transition end to end, wire it to a NestJS endpoint and PostgreSQL transaction, and record positive, unauthorized, and conflicting-transition cases.",
+          "evidenceToCollect": [
+            "Network trace tying browser click to PATCH request and returned shipment DTO.",
+            "Database test showing update and audit entry commit together.",
+            "E2E and concurrency tests showing 403/409 never produce a false delivered state."
+          ],
+          "doNotClaim": "This describes a suggested portfolio exercise, not verified personal work. Describe actual implementation and measured results only after completing them."
+        },
+        "pitfalls": [
+          "Optimistically marking delivered before server confirmation and failing to roll back on 409.",
+          "Treating HttpClient generic types as runtime validation of response JSON.",
+          "Allowing two concurrent requests to override status without version checks.",
+          "Displaying raw backend stack traces and leaking internal identifiers.",
+          "Publishing an event separately from database commit without reliability safeguards."
+        ],
+        "whenNotToUse": [
+          "Never treat a disabled Angular button as the only protection against duplicate updates.",
+          "Do not let browser clients write shipment database rows directly with privileged credentials.",
+          "Do not show a final success message before the operation is committed and acknowledged."
+        ],
+        "alternatives": [
+          {
+            "name": "Pessimistic UI confirmation",
+            "bestFor": "High-value state changes that require trusted acknowledgement",
+            "tradeoff": "Perceived latency while awaiting server response."
+          },
+          {
+            "name": "Optimistic UI update",
+            "bestFor": "Reversible low-risk actions such as favorites",
+            "tradeoff": "Requires rollback, conflict handling and reconciliation."
+          },
+          {
+            "name": "Polling after write",
+            "bestFor": "Eventually consistent downstream read models",
+            "tradeoff": "Additional load and possible delay."
+          },
+          {
+            "name": "WebSocket status updates",
+            "bestFor": "Multiple operators watching real-time state",
+            "tradeoff": "Needs reconnect and out-of-order event handling."
+          }
+        ],
+        "testing": {
+          "strategy": "Test UI loading/error states and verify that the server owns identity, transition and version checks; assert transaction behavior with a real test database and simulate network loss.",
+          "testCases": [
+            {
+              "case": "Successful update",
+              "expected": "Backend 200 updated DTO changes displayed status to delivered."
+            },
+            {
+              "case": "403 forbidden",
+              "expected": "UI retains in_transit and reports failure."
+            },
+            {
+              "case": "409 version conflict",
+              "expected": "UI does not claim success and prompts refresh."
+            },
+            {
+              "case": "Double-click",
+              "expected": "Saving guard and disabled button avoid repeated UI requests, while backend enforces correctness."
+            }
+          ],
+          "negativeCases": [
+            "Reject a status update for a shipment the dispatcher does not own.",
+            "Simulate request timeout after server commit; UI must not incorrectly promise whether the transition occurred until it reconciles server state."
+          ],
+          "verificationCommand": "ng test && ng build; execute shipment API/database integration tests and browser E2E tests"
+        },
+        "followUps": {
+          "beginner": [
+            "Which system is authoritative when UI state differs from the database?"
+          ],
+          "intermediate": [
+            "How do you design proper 401, 403 and 409 handling?"
+          ],
+          "advanced": [
+            "What happens when the user retries after a network timeout?"
+          ],
+          "expert": [
+            "How do you atomically couple state transitions, audit records and event publication?"
+          ]
+        },
+        "finalTakeaway": "Only confirmed, authorized and persisted results should become authoritative UI state."
+      },
+      "learningOutcomes": [
+        "Explain end-to-end browser-to-database data flow with an accurate mental model and practical motivation.",
+        "Trace a realistic industry workflow across the relevant trust boundaries.",
+        "Implement or adapt the code and verify success, error, and unauthorized cases."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/http/making-requests",
+          "https://angular.dev/guide/http/setting-up",
+          "https://docs.nestjs.com/controllers",
+          "https://docs.nestjs.com/pipes",
+          "https://www.postgresql.org/docs/current/ddl-constraints.html",
+          "https://docs.github.com/en/actions",
+          "https://docs.github.com/en/actions/deployment/about-deployments"
+        ],
+        "verificationScope": "Content authored with Angular, NestJS, PostgreSQL and GitHub Actions documentation as references. JSON Schema, sample syntax and example-specific checks are evaluated separately. Full Angular application integration tests and Mermaid browser rendering are not claimed."
+      }
+    }
+  ]
+}

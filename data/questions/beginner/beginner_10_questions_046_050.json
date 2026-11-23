@@ -1,0 +1,1087 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-10",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 46,
+      "end": 50
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-046",
+      "sequence": 46,
+      "difficulty": "beginner",
+      "domain": "Angular State Management and Change Detection",
+      "topic": "Application state: local versus shared",
+      "question": "What is application state, and what is the difference between local component state and shared state?",
+      "questionType": "conceptual",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "ecommerce",
+        "banking",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "change-detection",
+        "local-state",
+        "shared-state",
+        "source-of-truth",
+        "state",
+        "state-management"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Application state stores values that influence visible application behavior."
+        },
+        "motivation": {
+          "whyIntroduced": "Interactive screens must remember values that survive individual event handlers: a selected tab, a filtered product list, a signed-in user, or a draft form. Without a state model, unrelated components copy values and diverge. Separating local and shared state helps assign ownership and lifecycle deliberately.",
+          "historicalNote": "State is a general UI engineering concept, not an Angular-specific feature. Angular has used component properties and injected services for years; modern Angular adds Signals as a convenient reactive primitive. A state location should follow who owns the data and how long it must live, rather than a rule that all state belongs globally."
+        },
+        "problemSolved": {
+          "before": "The cart badge, cart page, and checkout component each maintain their own cart items, so changing quantities updates only one screen.",
+          "after": "Ephemeral visibility stays inside components, while a single cart service owns the shared cart items and exposes a read-only signal plus mutation methods.",
+          "benefits": [
+            "One authoritative in-memory source for shopping-cart UI state",
+            "Simple, testable ownership boundaries",
+            "Reduced unnecessary global coupling",
+            "Consistent updates across interested components"
+          ]
+        },
+        "characteristics": [
+          "Local state belongs to one component or a small feature, for example a dialog-open flag.",
+          "Shared client state supports multiple consumers and needs an explicit owner and lifecycle.",
+          "Server state is retrieved from a backend and may become stale; the server remains authoritative.",
+          "Derived state should be calculated from source state, not redundantly edited in several places.",
+          "Persistence is a separate concern: in-memory state disappears on reload unless intentionally stored."
+        ],
+        "simpleAnalogy": {
+          "title": "Personal notepad and team board",
+          "explanation": "A personal notepad tracks what one worker is doing; a team board contains facts several workers must coordinate. Copying the board into private notepads creates disagreements."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A store shows a cart icon in the header, a mini-cart sidebar, and a checkout summary.",
+          "implementation": "Keep the checkout modal open flag local. An injectable CartStore holds cart items in a private signal, exposes a read-only items signal, and computes item count and subtotal for multiple consumers. The backend still rechecks prices and stock.",
+          "businessImpact": "The header and checkout view reflect the same draft cart; users get fewer contradictory displays.",
+          "importantConstraint": "Client cart totals cannot authorize payment amounts; backend pricing and promotions remain authoritative."
+        },
+        "useCases": [
+          "Local filter input and active tab in a feature screen",
+          "Shared cart or workspace selection across multiple components",
+          "Derived counts and totals displayed in several places",
+          "Route-scoped wizard state",
+          "Separating cached server results from ephemeral UI flags"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "User adds a synthetic product to cart",
+            "Product card calls CartStore.add(product)",
+            "Store immutably updates its private cart-items signal",
+            "Header and checkout read the same read-only signal",
+            "Computed count and subtotal recalculate when items change",
+            "Checkout submits items to backend where stock and price are revalidated"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-046-flow",
+              "type": "flowchart",
+              "title": "Application state: local versus shared end-to-end visualization",
+              "mermaid": "flowchart TD\n    A[Product card add click] --> B[CartStore.add]\n    B --> C[Private items signal]\n    C --> D[Header count computed]\n    C --> E[Checkout subtotal computed]\n    E --> F[Checkout API]\n    F --> G[Backend validates price and stock]",
+              "caption": "Illustrative flow using synthetic data; backend authorization, version-specific rendering, and operational guarantees require application-level verification."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "cart.store.ts",
+          "runtime": "Modern standalone Angular (21+) teaching example; requires a configured Angular workspace, suitable providers and a backend/mock feed where appropriate. UI templates must be checked with Angular compilation and tests before production use.",
+          "code": "import { Injectable, computed, signal } from '@angular/core';\n\nexport interface CartItem {\n  productId: string;\n  name: string;\n  unitPriceMinor: number;\n  quantity: number;\n}\n\n@Injectable({ providedIn: 'root' })\nexport class CartStore {\n  private readonly _items = signal<CartItem[]>([]);\n  readonly items = this._items.asReadonly();\n  readonly itemCount = computed(() =>\n    this.items().reduce((total, item) => total + item.quantity, 0)\n  );\n  readonly subtotalMinor = computed(() =>\n    this.items().reduce((sum, item) =>\n      sum + item.unitPriceMinor * item.quantity, 0)\n  );\n\n  add(item: Omit<CartItem, 'quantity'>): void {\n    this._items.update(current => {\n      const exists = current.some(row => row.productId === item.productId);\n      if (!exists) return [...current, { ...item, quantity: 1 }];\n      return current.map(row => row.productId === item.productId\n        ? { ...row, quantity: row.quantity + 1 } : row);\n    });\n  }\n\n  clear(): void { this._items.set([]); }\n}\n// Example: inject(CartStore).add({productId:'P1',name:'Book',unitPriceMinor:1299});\n// Price here is for a demonstration only; the server determines actual checkout price.",
+          "explanation": [
+            "The private writable signal owns one cart state; callers cannot directly call set() on its readonly view.",
+            "Computed itemCount and subtotalMinor remain in sync rather than storing manually updated duplicate totals.",
+            "Immutable array and object updates make changes visible to signal dependents.",
+            "Root scope shares the cart in one Angular application; a different scope could intentionally isolate a feature instance.",
+            "Amounts in integer minor units simplify demonstration but real currency rules and backend price checks remain essential."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would build the store for the e-commerce project and compare the header and checkout states after adding, clearing, and navigating between routed screens.",
+          "evidenceToCollect": [
+            "Component test showing header count and checkout subtotal agree",
+            "Store unit tests for new item, repeated item and clear",
+            "Backend checkout contract test that rejects a manipulated client price"
+          ],
+          "doNotClaim": "Suggested portfolio work, not verified professional experience. Do not claim implementation, deployment or metrics without evidence."
+        },
+        "pitfalls": [
+          "Putting modal-open flags in a root singleton needlessly shares ephemeral UI state.",
+          "Updating arrays or objects in place can fail to notify signal dependents when reference equality is unchanged.",
+          "A readonly signal prevents set/update calls but does not deeply freeze nested objects.",
+          "Storing derived totals separately causes stale counts when mutation paths forget updates.",
+          "A root-scoped in-memory store is not durable and does not synchronize independent browser tabs by itself."
+        ],
+        "whenNotToUse": [
+          "Never assume a client-side store is the source of truth for money or inventory.",
+          "Do not globalize every component variable by default.",
+          "Do not store passwords, private keys, or privileged server secrets in browser state."
+        ],
+        "alternatives": [
+          {
+            "name": "Component signal",
+            "bestFor": "One screen owns a filter or open/closed flag",
+            "tradeoff": "Sibling features cannot read it unless explicitly connected"
+          },
+          {
+            "name": "Route-level provider",
+            "bestFor": "A wizard or feature needs isolated shared state",
+            "tradeoff": "State is disposed and recreated with route injector lifecycle"
+          },
+          {
+            "name": "NgRx or another centralized store",
+            "bestFor": "Complex cross-feature state with strong tooling needs",
+            "tradeoff": "Additional actions/reducers/selectors and maintenance burden"
+          },
+          {
+            "name": "Backend persistence",
+            "bestFor": "Durable authoritative customer cart or orders",
+            "tradeoff": "Requires latency, conflict and error handling"
+          }
+        ],
+        "testing": {
+          "strategy": "Test the state or component with Angular TestBed and relevant fake services/streams. Assert behavior through observable outputs and DOM, not private implementation details. Use ng test and ng build in a configured Angular workspace.",
+          "testCases": [
+            {
+              "case": "First add",
+              "expected": "Adding P1 results in count 1 and subtotal 1299."
+            },
+            {
+              "case": "Repeat add",
+              "expected": "Adding P1 again produces count 2 and subtotal 2598."
+            },
+            {
+              "case": "Clear",
+              "expected": "Clearing the cart sets count and subtotal to zero."
+            },
+            {
+              "case": "Shared consumer",
+              "expected": "Header and checkout read the same signal values."
+            }
+          ],
+          "negativeCases": [
+            "Attempt a consumer-side items.set() and verify TypeScript rejects mutation through the read-only signal.",
+            "Simulate client price tampering and assert backend ignores or rejects untrusted submitted prices."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What is local state versus shared state?"
+          ],
+          "intermediate": [
+            "How would you scope a cart store to one route and persist a draft safely?"
+          ],
+          "advanced": [
+            "How do you reconcile optimistic cart changes with rejected server updates?"
+          ],
+          "expert": [
+            "How would you coordinate cart state across devices and regional services without treating browser state as authoritative?"
+          ]
+        },
+        "finalTakeaway": "Keep state as local as practical, share only when needed, and derive rather than duplicate."
+      },
+      "learningOutcomes": [
+        "Explain application state: local versus shared clearly with a realistic business example.",
+        "Adapt the supplied code and run the listed tests in an Angular project.",
+        "Diagnose at least one edge case, identify a sound alternative and justify the choice."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/effect",
+          "https://angular.dev/guide/zoneless",
+          "https://angular.dev/best-practices/skipping-subtrees",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Cross-checked conceptual behavior with current official Angular Signals, OnPush, zoneless and RxJS interoperability guides. JSON and TypeScript syntax/transpilation are checked separately; Angular template compilation, browser tests and Mermaid rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-047",
+      "sequence": 47,
+      "difficulty": "beginner",
+      "domain": "Angular State Management and Change Detection",
+      "topic": "Signals, RxJS services and centralized stores",
+      "question": "What are the basic differences between managing state with Signals, RxJS services and a state-management library?",
+      "questionType": "conceptual",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "logistics",
+        "saas",
+        "ecommerce"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "change-detection",
+        "ngrx",
+        "observables",
+        "rxjs",
+        "signals",
+        "state-architecture",
+        "state-management"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Signals hold current values; Observables describe asynchronous event streams."
+        },
+        "motivation": {
+          "whyIntroduced": "Different kinds of application state need different tools. A current selected shipment can be read synchronously, whereas live tracking events arrive over time and require composition, cancellation, errors and completion. Large workflows may also benefit from centrally defined actions and state transitions. Selecting the smallest fitting model keeps code understandable.",
+          "historicalNote": "Angular historically used class properties and RxJS services; libraries such as NgRx formalized event-driven global stores. Signals provide built-in reactive current values, while RxJS remains useful for asynchronous streams. Signals and RxJS can interoperate via toSignal and toObservable; they are complementary rather than universal replacements."
+        },
+        "problemSolved": {
+          "before": "A logistics dashboard uses several unmanaged subscriptions, manually copies latest values into multiple components, and introduces a global store even for trivial local toggles.",
+          "after": "The current selected shipment is a signal; incoming WebSocket tracking events are processed in RxJS; only complex, cross-feature transitions justify an additional centralized store.",
+          "benefits": [
+            "Synchronous, fine-grained current-value reads with Signals",
+            "RxJS operators for events, cancellation and error handling",
+            "Optional centralized conventions for large coordinated workflows",
+            "Boundaries that avoid unnecessary duplicated state"
+          ]
+        },
+        "characteristics": [
+          "A Signal always exposes a current value when read, using the function-call syntax selected().",
+          "An Observable can emit zero, one or many values over time, and can complete or error.",
+          "BehaviorSubject is an RxJS subject with a current value, but its stream semantics remain Observable-based.",
+          "Centralized libraries can add actions, selectors, reducers, effects and debugging conventions depending on the library.",
+          "Interop helpers subscribe or bridge notification timing; conversion is not free and should be scoped carefully."
+        ],
+        "simpleAnalogy": {
+          "title": "Display board, radio and operations ledger",
+          "explanation": "A display board shows the current destination (Signal); a radio broadcasts ongoing events (Observable); an operations ledger records coordinated changes and rules (structured store)."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A dispatch dashboard selects one shipment while receiving frequent carrier updates and showing cross-feature exception counts.",
+          "implementation": "Use signal() for selected shipment ID and computed() for selected detail; use an Observable for carrier events and toSignal() when a current UI value is needed. Introduce a centralized store only when cross-team action history and complex updates justify the overhead.",
+          "businessImpact": "Developers can reason separately about current UI state and temporal event behavior.",
+          "importantConstraint": "Real-time client displays are projections; backend event ordering and authorization determine authoritative shipment status."
+        },
+        "useCases": [
+          "Signals for selected tab, active filters and derived totals",
+          "RxJS for debounce, retry, WebSocket events and HTTP cancellation",
+          "toSignal for displaying a subscribed stream as current state",
+          "NgRx-style stores for complicated cross-module workflows and devtools",
+          "Service-based state for moderate shared UI requirements"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Dispatcher selects a shipment; component updates selectedId signal",
+            "Tracking service receives carrier updates through an Observable",
+            "RxJS operators filter and normalize events",
+            "toSignal converts an observable read model into a current UI value",
+            "Computed UI state combines selection and current read model",
+            "If several features require coordinated transitions, a centralized store can define explicit domain actions"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-047-flow",
+              "type": "flowchart",
+              "title": "Signals, RxJS services and centralized stores end-to-end visualization",
+              "mermaid": "flowchart LR\n    A[User selects shipment] --> B[Selected ID Signal]\n    C[Carrier events] --> D[RxJS Observable processing]\n    D --> E[toSignal read model]\n    B --> F[Computed display]\n    E --> F\n    F --> G[Angular dashboard]\n    H[Optional centralized store] -. Complex shared workflows .-> G",
+              "caption": "Illustrative flow using synthetic data; backend authorization, version-specific rendering, and operational guarantees require application-level verification."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shipment-vm.component.ts",
+          "runtime": "Modern standalone Angular (21+) teaching example; requires a configured Angular workspace, suitable providers and a backend/mock feed where appropriate. UI templates must be checked with Angular compilation and tests before production use.",
+          "code": "import { Component, Injectable, computed, inject, signal } from '@angular/core';\nimport { toSignal } from '@angular/core/rxjs-interop';\nimport { BehaviorSubject } from 'rxjs';\n\nexport interface Shipment { id: string; status: 'created' | 'in-transit' | 'delivered'; }\n\n@Injectable({ providedIn: 'root' })\nexport class ShipmentFeed {\n  private readonly source = new BehaviorSubject<Shipment[]>([]);\n  readonly shipments$ = this.source.asObservable();\n  publish(items: Shipment[]): void { this.source.next(items); }\n}\n\n@Component({\n  standalone: true,\n  selector: 'app-shipment-view',\n  template: `\n    <button type=\"button\" (click)=\"select('S-1')\">Select S-1</button>\n    <p>Selected: {{ selected()?.status ?? 'none' }}</p>\n  `\n})\nexport class ShipmentViewComponent {\n  private readonly feed = inject(ShipmentFeed);\n  readonly selectedId = signal<string | null>(null);\n  readonly shipments = toSignal(this.feed.shipments$, { initialValue: [] as Shipment[] });\n  readonly selected = computed(() =>\n    this.shipments().find(item => item.id === this.selectedId()) ?? null\n  );\n  select(id: string): void { this.selectedId.set(id); }\n}\n// A real ShipmentFeed should handle auth, event ordering, reconnection and malformed data.",
+          "explanation": [
+            "selectedId is an immediately readable Signal representing current UI selection.",
+            "shipments$ is an Observable that may publish successive data snapshots.",
+            "toSignal is called once in a component injection context, subscribes immediately, and cleans up when the component is destroyed by default.",
+            "computed derives the chosen shipment without manual subscription or duplicate assignment.",
+            "This demonstration does not claim that a UI-only feed ensures ordered or reliable enterprise event delivery."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would implement the logistics view using a mock carrier event feed, demonstrate that selected shipment updates as data arrives, then document when a centralized store would help.",
+          "evidenceToCollect": [
+            "Unit tests for selected shipment when events arrive",
+            "Test for unknown selection and empty stream",
+            "Notes comparing memory/lifecycle costs of a service-based store versus centralized state"
+          ],
+          "doNotClaim": "Suggested portfolio work, not verified professional experience. Do not claim implementation, deployment or metrics without evidence."
+        },
+        "pitfalls": [
+          "Treating a Signal as if it were a stream with built-in error and completion semantics.",
+          "Calling toSignal() repeatedly for the same Observable creates redundant subscriptions.",
+          "Effects that copy values between signals produce avoidable propagation cycles.",
+          "Root services with unrelated mutable state become difficult to isolate and reset.",
+          "Centralized stores introduce complexity when only one small component needs the state."
+        ],
+        "whenNotToUse": [
+          "Do not replace every RxJS request/stream pipeline with an effect that manually manages subscriptions.",
+          "Do not introduce a large global store for a single component toggle.",
+          "Do not use a client-state abstraction as a substitute for backend authorization or consistent persistence."
+        ],
+        "alternatives": [
+          {
+            "name": "Signals-only service",
+            "bestFor": "Current shared client state and derived values",
+            "tradeoff": "No built-in multi-event composition or stream completion semantics"
+          },
+          {
+            "name": "RxJS BehaviorSubject service",
+            "bestFor": "Existing stream-oriented shared state",
+            "tradeoff": "Requires subscription/lifecycle discipline and can be overcomplicated for trivial values"
+          },
+          {
+            "name": "NgRx Store",
+            "bestFor": "Large applications requiring explicit coordinated actions and tooling",
+            "tradeoff": "Significant conventions and extra artifacts"
+          },
+          {
+            "name": "Server cache/query abstraction",
+            "bestFor": "Server-owned data with invalidation and refetch needs",
+            "tradeoff": "Caching policies and stale/refresh behavior add complexity"
+          }
+        ],
+        "testing": {
+          "strategy": "Test the state or component with Angular TestBed and relevant fake services/streams. Assert behavior through observable outputs and DOM, not private implementation details. Use ng test and ng build in a configured Angular workspace.",
+          "testCases": [
+            {
+              "case": "Select known",
+              "expected": "After feed publishes S-1, selection renders its status."
+            },
+            {
+              "case": "Select missing",
+              "expected": "Unknown ID shows none without throwing."
+            },
+            {
+              "case": "Change event",
+              "expected": "Publishing an updated S-1 changes the computed display."
+            },
+            {
+              "case": "Empty result",
+              "expected": "Initial empty shipments list keeps derived selected null."
+            }
+          ],
+          "negativeCases": [
+            "Simulate duplicated events and show why delivery guarantees need a backend policy.",
+            "Destroy the component and verify conversion subscriptions are released using an observable teardown spy."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "Which value would you model as a Signal and which as an Observable?"
+          ],
+          "intermediate": [
+            "How do toSignal and toObservable differ in subscription and timing behavior?"
+          ],
+          "advanced": [
+            "When is a centralized state library justified across many Angular teams?"
+          ],
+          "expert": [
+            "How would you model real-time event projections, failure recovery and deterministic state transitions across a large platform?"
+          ]
+        },
+        "finalTakeaway": "Choose Signals for current values, RxJS for event streams, and stores when coordination warrants them."
+      },
+      "learningOutcomes": [
+        "Explain signals, rxjs services and centralized stores clearly with a realistic business example.",
+        "Adapt the supplied code and run the listed tests in an Angular project.",
+        "Diagnose at least one edge case, identify a sound alternative and justify the choice."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/effect",
+          "https://angular.dev/guide/zoneless",
+          "https://angular.dev/best-practices/skipping-subtrees",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Cross-checked conceptual behavior with current official Angular Signals, OnPush, zoneless and RxJS interoperability guides. JSON and TypeScript syntax/transpilation are checked separately; Angular template compilation, browser tests and Mermaid rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-048",
+      "sequence": 48,
+      "difficulty": "beginner",
+      "domain": "Angular State Management and Change Detection",
+      "topic": "Angular change detection fundamentals",
+      "question": "What is Angular change detection, and why does the UI update when component state changes?",
+      "questionType": "conceptual",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "healthcare",
+        "ecommerce"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "change-detection",
+        "rendering",
+        "signals",
+        "state-management",
+        "templates",
+        "zoneless"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Change detection synchronizes rendered templates with current application state."
+        },
+        "motivation": {
+          "whyIntroduced": "A JavaScript variable changing does not automatically update the DOM. Angular needs a repeatable way to evaluate relevant template bindings and apply necessary updates. Modern reactive notifications, component events, AsyncPipe and signals help Angular determine which views require checking without developers manually writing DOM updates.",
+          "historicalNote": "Older Angular applications often relied on Zone.js to schedule checks following asynchronous activities. Modern Angular supports zoneless operation and relies on framework notifications such as template-read signal changes, bound events and markForCheck. Scheduling a check is different from blindly updating every DOM node."
+        },
+        "problemSolved": {
+          "before": "A banking balance variable changes after a refresh, but a manually maintained DOM text node displays an old amount unless code updates it everywhere.",
+          "after": "An Angular template reads the balance signal; setting it marks the dependent view and Angular updates the rendered binding on the next appropriate check.",
+          "benefits": [
+            "Declarative binding instead of manual DOM text replacement",
+            "Consistent rendering from component state",
+            "Automatic tracking for template-read Signals",
+            "More opportunities to skip unaffected component subtrees"
+          ]
+        },
+        "characteristics": [
+          "A template binding is evaluated when its view is checked; Angular updates DOM only where binding results differ.",
+          "Changing a Signal read in a template notifies Angular that the consuming view needs updating.",
+          "Template event handlers are a supported mechanism to notify Angular about UI changes.",
+          "AsyncPipe marks its view for check when it receives new values.",
+          "A detached view is not checked until reattached or explicitly handled; render scheduling details vary by Angular version and mode."
+        ],
+        "simpleAnalogy": {
+          "title": "Airport departure board",
+          "explanation": "When the departure time changes, a display system refreshes the affected entry. It does not require staff to erase and rewrite every board by hand."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A customer clicks Refresh to retrieve a fictional account balance from an API.",
+          "implementation": "A signal stores the current balance amount in minor units; the template reads it. When the HTTP response arrives, the signal is set and Angular marks the consuming view for the next check; loading and failure are modeled separately.",
+          "businessImpact": "The balance widget stays connected to state and does not require manual DOM mutation.",
+          "importantConstraint": "The backend remains authoritative for account balance; changing the UI signal does not transfer money or prove server consistency."
+        },
+        "useCases": [
+          "Refresh a balance summary when data changes",
+          "Update validation messages after user interactions",
+          "Render a computed cart count",
+          "Display async search results via AsyncPipe",
+          "Apply new server data through a Signal-backed view model"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "User clicks Refresh on account component",
+            "Bound click handler calls the API service",
+            "Component displays pending state using a signal",
+            "API responds with authorized account data",
+            "Component updates balance and pending signals",
+            "Angular checks the notified view and updates changed template bindings"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-048-flow",
+              "type": "sequence",
+              "title": "Angular change detection fundamentals end-to-end visualization",
+              "mermaid": "sequenceDiagram\n    actor U as Banking customer\n    participant C as Account component\n    participant H as Account API service\n    participant S as Signals\n    participant A as Angular rendering\n    U->>C: Click Refresh\n    C->>S: Set loading true\n    C->>H: GET current balance\n    H-->>C: Authorized account response\n    C->>S: Set balance and loading false\n    S->>A: Notify template consumer\n    A-->>U: Update relevant DOM bindings",
+              "caption": "Illustrative flow using synthetic data; backend authorization, version-specific rendering, and operational guarantees require application-level verification."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "balance.component.ts",
+          "runtime": "Modern standalone Angular (21+) teaching example; requires a configured Angular workspace, suitable providers and a backend/mock feed where appropriate. UI templates must be checked with Angular compilation and tests before production use.",
+          "code": "import { Component, computed, signal } from '@angular/core';\n\n@Component({\n  standalone: true,\n  selector: 'app-demo-balance',\n  template: `\n    <p>Balance: {{ formatted() }}</p>\n    <button type=\"button\" (click)=\"applyMockRefresh()\">Refresh demo</button>\n  `\n})\nexport class DemoBalanceComponent {\n  readonly balanceMinor = signal(12500);\n  readonly formatted = computed(() =>\n    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })\n      .format(this.balanceMinor() / 100)\n  );\n  applyMockRefresh(): void {\n    // Real implementation: use authorized API response, not a hardcoded mutation.\n    this.balanceMinor.set(12750);\n  }\n}",
+          "explanation": [
+            "The template reads formatted(), establishing a dependency on a computed signal.",
+            "formatted reads balanceMinor, so setting the balance invalidates the derived value.",
+            "Angular schedules checking of the consuming component and updates its binding when needed.",
+            "The mock refresh avoids claiming that a simple UI assignment accurately models a bank ledger.",
+            "No direct document.querySelector or DOM textContent mutation is necessary."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would add a demo balance refresh component to the banking project, then replace the mock update with a secured API response and compare UI checks using Angular DevTools.",
+          "evidenceToCollect": [
+            "Component test verifying the displayed amount changes after the button click",
+            "Profiler observation with a change-detection update",
+            "Backend response test demonstrating the UI reflects authorized data"
+          ],
+          "doNotClaim": "Suggested portfolio work, not verified professional experience. Do not claim implementation, deployment or metrics without evidence."
+        },
+        "pitfalls": [
+          "Assuming plain JavaScript property mutation always causes a zoneless view to refresh without notification.",
+          "Mutating a nested object inside a Signal without replacing the reference can prevent expected notifications.",
+          "Confusing marking a view dirty with an immediate synchronous DOM update.",
+          "Putting heavy synchronous calculations in frequently checked template expressions can harm performance.",
+          "Calling detectChanges() indiscriminately to hide a broken state ownership or notification design."
+        ],
+        "whenNotToUse": [
+          "Do not rely on manual global DOM rewrites as the primary Angular rendering approach.",
+          "Do not assume a component refresh proves backend data integrity.",
+          "Do not trigger repeated synchronous work from template getters without measuring it."
+        ],
+        "alternatives": [
+          {
+            "name": "AsyncPipe",
+            "bestFor": "Observable-backed templates",
+            "tradeoff": "Requires clear loading/error modeling in the stream or view model"
+          },
+          {
+            "name": "Signals and computed",
+            "bestFor": "Current values with derived reactive bindings",
+            "tradeoff": "Immutable updates and correct dependency reads matter"
+          },
+          {
+            "name": "ChangeDetectorRef.markForCheck",
+            "bestFor": "Notify Angular after an otherwise untracked mutation",
+            "tradeoff": "Manual calls can conceal a missing reactive abstraction"
+          },
+          {
+            "name": "Direct DOM manipulation",
+            "bestFor": "Rare integration with third-party imperative APIs",
+            "tradeoff": "Easy to bypass Angular lifecycle, accessibility and change tracking"
+          }
+        ],
+        "testing": {
+          "strategy": "Test the state or component with Angular TestBed and relevant fake services/streams. Assert behavior through observable outputs and DOM, not private implementation details. Use ng test and ng build in a configured Angular workspace.",
+          "testCases": [
+            {
+              "case": "Initial render",
+              "expected": "Template displays $125.00."
+            },
+            {
+              "case": "Refresh action",
+              "expected": "Clicking Refresh updates value to $127.50."
+            },
+            {
+              "case": "Computed dependency",
+              "expected": "formatted() reflects balanceMinor without a manual recompute call."
+            }
+          ],
+          "negativeCases": [
+            "Verify a nested in-place mutation does not reliably replace a parent object signal reference.",
+            "Inspect whether an untracked callback changes an ordinary property without notifying a zoneless Angular view."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What triggers Angular to update a template?"
+          ],
+          "intermediate": [
+            "How do Signals and AsyncPipe notify Angular to check views?"
+          ],
+          "advanced": [
+            "How do notification and scheduling differ between zoned and zoneless applications?"
+          ],
+          "expert": [
+            "How would you diagnose rendering bottlenecks in a large component tree with mixed legacy and reactive code?"
+          ]
+        },
+        "finalTakeaway": "Let Angular react to explicit state notifications instead of manually synchronizing DOM content."
+      },
+      "learningOutcomes": [
+        "Explain angular change detection fundamentals clearly with a realistic business example.",
+        "Adapt the supplied code and run the listed tests in an Angular project.",
+        "Diagnose at least one edge case, identify a sound alternative and justify the choice."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/effect",
+          "https://angular.dev/guide/zoneless",
+          "https://angular.dev/best-practices/skipping-subtrees",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Cross-checked conceptual behavior with current official Angular Signals, OnPush, zoneless and RxJS interoperability guides. JSON and TypeScript syntax/transpilation are checked separately; Angular template compilation, browser tests and Mermaid rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-049",
+      "sequence": 49,
+      "difficulty": "beginner",
+      "domain": "Angular State Management and Change Detection",
+      "topic": "OnPush change detection and component boundaries",
+      "question": "What is the OnPush change-detection strategy, and how can it reduce unnecessary work?",
+      "questionType": "conceptual",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "ecommerce",
+        "saas",
+        "healthcare"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "change-detection",
+        "inputs",
+        "onpush",
+        "performance",
+        "signals",
+        "state-management"
+      ],
+      "answer": {
+        "definition": {
+          "text": "OnPush limits routine checking to views with relevant notifications."
+        },
+        "motivation": {
+          "whyIntroduced": "Large applications have many component trees. Checking every eligible view after routine actions can execute unnecessary template and computation work. OnPush allows Angular to skip clean subtrees when no relevant input, event, signal, or explicit dirty notification requires a check, while still updating them when needed.",
+          "historicalNote": "Angular exposes ChangeDetectionStrategy.OnPush and the default/eager strategy. In modern Angular, OnPush combines naturally with template-read Signals and is recommended for many zoneless-compatible components, but is not mandatory for zoneless operation. It is a checking strategy, not an automatic guarantee that a component will never be checked."
+        },
+        "problemSolved": {
+          "before": "An e-commerce page repeatedly checks dozens of product card templates after unrelated toolbar interactions.",
+          "after": "Stable product inputs and OnPush card boundaries let Angular skip clean card subtrees until relevant change notifications occur.",
+          "benefits": [
+            "Reduced irrelevant subtree checks in suitable component trees",
+            "More explicit data-flow and state ownership",
+            "Compatibility with Signals-driven updates",
+            "A useful performance tool when profiling confirms wasted checks"
+          ]
+        },
+        "characteristics": [
+          "An OnPush component is checked when appropriate notifications occur, not only on initial render.",
+          "New template-bound input values can cause the component to be checked.",
+          "An event handled inside an OnPush subtree can cause checks along relevant paths.",
+          "A template-read Signal change marks the consumer for an update.",
+          "Mutating an existing object reference in place may not count as a new input value for an OnPush child."
+        ],
+        "simpleAnalogy": {
+          "title": "Motion-activated hallway lights",
+          "explanation": "A corridor keeps its lights off when nothing relevant happens, but switches them on when a motion sensor detects activity. OnPush similarly avoids routine work in clean areas."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A product results page renders hundreds of product cards and updates a cart counter in the header.",
+          "implementation": "Use OnPush cards, immutable input updates, stable @for tracking IDs, and signals for the cart counter. Measure change detection before and after; use virtual scrolling if DOM size, not checks, is the true bottleneck.",
+          "businessImpact": "Potentially less UI checking during unrelated interaction, with maintainable component boundaries.",
+          "importantConstraint": "OnPush is not a substitute for backend pagination, accessible UI, stable keys, or performance measurement."
+        },
+        "useCases": [
+          "Reusable card components driven by immutable inputs",
+          "Large read-only dashboard widgets",
+          "Signals-based components with explicit state ownership",
+          "Frequently updated tables with carefully managed row identity",
+          "Improving responsiveness after profiler identifies wasted checks"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Parent renders list of products using stable IDs",
+            "Product card receives an immutable product object input",
+            "Unrelated parent state changes without new product inputs",
+            "Angular skips clean OnPush card subtrees when allowed",
+            "Product input reference changes or a template-read Signal notifies Angular",
+            "Affected card is checked and relevant DOM bindings update"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-049-flow",
+              "type": "flowchart",
+              "title": "OnPush change detection and component boundaries end-to-end visualization",
+              "mermaid": "flowchart TD\n    A[Parent interaction] --> B{New card input or other notification?}\n    B -- No --> C[Clean OnPush card can be skipped]\n    B -- Yes --> D[Card checked]\n    D --> E{Rendered binding changed?}\n    E -- No --> F[No DOM patch needed]\n    E -- Yes --> G[Update affected DOM binding]",
+              "caption": "Illustrative flow using synthetic data; backend authorization, version-specific rendering, and operational guarantees require application-level verification."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "product-card.component.ts",
+          "runtime": "Modern standalone Angular (21+) teaching example; requires a configured Angular workspace, suitable providers and a backend/mock feed where appropriate. UI templates must be checked with Angular compilation and tests before production use.",
+          "code": "import { ChangeDetectionStrategy, Component, input, signal } from '@angular/core';\n\nexport interface ProductSummary { id: string; name: string; priceMinor: number; }\n\n@Component({\n  standalone: true,\n  selector: 'app-product-card',\n  changeDetection: ChangeDetectionStrategy.OnPush,\n  template: `\n    <article>\n      <h3>{{ product().name }}</h3>\n      <p>{{ product().priceMinor / 100 }}</p>\n      <button type=\"button\" (click)=\"toggleDetails()\">Details</button>\n      @if (detailsOpen()) { <p>Product ID: {{ product().id }}</p> }\n    </article>\n  `\n})\nexport class ProductCardComponent {\n  readonly product = input.required<ProductSummary>();\n  readonly detailsOpen = signal(false);\n  toggleDetails(): void { this.detailsOpen.update(open => !open); }\n}\n// Parent example: <app-product-card [product]=\"product\" />\n// For list rendering: @for (product of products(); track product.id) { ... }",
+          "explanation": [
+            "changeDetection: OnPush makes this component eligible for clean-subtree skipping.",
+            "The required input() receives the parent product value as a read-only input signal.",
+            "The local detailsOpen signal notifies the template when the user toggles details.",
+            "Pass a new product object when product details change rather than mutating a shared object silently.",
+            "The displayed price is intentionally simple; production formatting requires currency context and trusted backend pricing."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would create an OnPush product-card grid in the e-commerce project and profile an unrelated cart-count update to compare checks with a default-strategy version.",
+          "evidenceToCollect": [
+            "A component test showing changed product inputs render correctly",
+            "A toggle test for signal-driven local details",
+            "Angular DevTools before/after profiling notes under a repeatable interaction"
+          ],
+          "doNotClaim": "Suggested portfolio work, not verified professional experience. Do not claim implementation, deployment or metrics without evidence."
+        },
+        "pitfalls": [
+          "Believing OnPush means Angular never checks a component after creation.",
+          "Mutating an input object in place while keeping the same reference can leave OnPush children stale.",
+          "Using expensive template functions can still cost time whenever the component is checked.",
+          "Overusing detectChanges() hides weak component boundaries and can cause scheduling surprises.",
+          "If most time is spent laying out thousands of DOM nodes, OnPush alone will not solve it."
+        ],
+        "whenNotToUse": [
+          "Do not apply OnPush as a blanket performance guarantee without profiling.",
+          "Do not rely on in-place object mutation for OnPush input updates.",
+          "Do not use OnPush to bypass needed reactive notifications or accessibility updates."
+        ],
+        "alternatives": [
+          {
+            "name": "Default/eager detection",
+            "bestFor": "Small apps or complex legacy component hosts",
+            "tradeoff": "More eligible views may be checked after broader notifications"
+          },
+          {
+            "name": "Signals with default strategy",
+            "bestFor": "Incremental reactive migration",
+            "tradeoff": "Does not by itself define subtree check strategy"
+          },
+          {
+            "name": "Virtual scrolling",
+            "bestFor": "Huge lists dominated by DOM size",
+            "tradeoff": "Adds scrolling and row recycling complexity"
+          },
+          {
+            "name": "Immutable view models",
+            "bestFor": "Predictable input changes independent of strategy",
+            "tradeoff": "May allocate replacement objects and require data-flow discipline"
+          }
+        ],
+        "testing": {
+          "strategy": "Test the state or component with Angular TestBed and relevant fake services/streams. Assert behavior through observable outputs and DOM, not private implementation details. Use ng test and ng build in a configured Angular workspace.",
+          "testCases": [
+            {
+              "case": "Initial input",
+              "expected": "Product name and amount render."
+            },
+            {
+              "case": "Input update",
+              "expected": "Parent supplies a new product object and child displays updated name."
+            },
+            {
+              "case": "Local signal",
+              "expected": "Details button toggles visible product ID."
+            },
+            {
+              "case": "Unrelated parent interaction",
+              "expected": "Profiler can show clean card checks are skipped when eligible."
+            }
+          ],
+          "negativeCases": [
+            "Mutate the same product object reference and document why relying on that mutation is unsafe.",
+            "Force repeated updates to thousands of rows and measure whether virtual scrolling is needed beyond OnPush."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "When does Angular check an OnPush component?"
+          ],
+          "intermediate": [
+            "Why can in-place mutation fail to refresh an OnPush child input?"
+          ],
+          "advanced": [
+            "How do Signals, events and markForCheck affect subtree skipping?"
+          ],
+          "expert": [
+            "How would you profile and tune a mixed OnPush/legacy component tree under a high-frequency data feed?"
+          ]
+        },
+        "finalTakeaway": "Use OnPush with reliable notifications and immutable inputs, and confirm gains by profiling."
+      },
+      "learningOutcomes": [
+        "Explain onpush change detection and component boundaries clearly with a realistic business example.",
+        "Adapt the supplied code and run the listed tests in an Angular project.",
+        "Diagnose at least one edge case, identify a sound alternative and justify the choice."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/effect",
+          "https://angular.dev/guide/zoneless",
+          "https://angular.dev/best-practices/skipping-subtrees",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Cross-checked conceptual behavior with current official Angular Signals, OnPush, zoneless and RxJS interoperability guides. JSON and TypeScript syntax/transpilation are checked separately; Angular template compilation, browser tests and Mermaid rendering are not claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-050",
+      "sequence": 50,
+      "difficulty": "beginner",
+      "domain": "Angular State Management and Change Detection",
+      "topic": "Debugging stale asynchronous UI state",
+      "question": "A component displays old data after an asynchronous operation. How would you investigate and fix the problem?",
+      "questionType": "debugging",
+      "priority": "high",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "change-detection",
+        "debugging",
+        "race-condition",
+        "signals",
+        "stale-ui",
+        "state-management"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Trace stale displays through requests, ownership, and rendering notifications."
+        },
+        "motivation": {
+          "whyIntroduced": "Async operations can complete in surprising orders, the response can be stale before rendering, and the correct response can fail to reach the view. A structured investigation separates network data problems from state propagation and rendering problems. Guessing that every stale UI is a change-detection issue often hides the actual defect.",
+          "historicalNote": "Angular may use Observable streams, Signals, AsyncPipe, or ordinary properties. Whether changes render depends on template subscriptions and notifications in the application’s rendering mode. In-flight requests may also race across navigation, filters or tenant switches; operators such as switchMap help ensure a view subscribes only to the latest query, though the server may still process cancelled requests."
+        },
+        "problemSolved": {
+          "before": "An account screen changes from account A to account B, but the slow response for A arrives later and overwrites the current display.",
+          "after": "The active account ID drives a switchMap pipeline; old subscriptions are disposed, explicit loading/error states are shown, and backend authorization verifies access for every account request.",
+          "benefits": [
+            "Separates race conditions from template notification bugs",
+            "Makes data ownership and request lifetime visible",
+            "Prevents older responses from overwriting latest-selection state",
+            "Produces testable fixes instead of arbitrary change detection calls"
+          ]
+        },
+        "characteristics": [
+          "Inspect network request URLs, response bodies and completion order before assuming a rendering issue.",
+          "Verify the state owner actually receives and stores the expected response.",
+          "Inspect whether the template reads the state through a tracked Signal, AsyncPipe or another notification path.",
+          "Use switchMap for latest-selection reads and identify when cancellation must not cancel a required server-side write.",
+          "Check provider scope, cache invalidation and tenant/account boundaries when stale values persist across navigation."
+        ],
+        "simpleAnalogy": {
+          "title": "Two restaurant orders arrive out of order",
+          "explanation": "You order tea, then change to coffee. The old tea arrives last and gets put on your table; the server needs to know which order is current before displaying the result."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A customer switches from a current account to a savings account. The slower current-account API response arrives after savings-account data and incorrectly replaces the displayed balance.",
+          "implementation": "Drive the selected account ID through an Observable and switchMap into AccountApi.getById(). Render loading, success, and error states with AsyncPipe. Reauthenticate and authorize all account access on the server.",
+          "businessImpact": "The UI displays data for the latest selected account even when responses arrive out of order.",
+          "importantConstraint": "Unsubscribing from a client HTTP request does not guarantee a backend computation stops. Never assume this technique safely prevents a state-changing bank transfer."
+        },
+        "useCases": [
+          "Rapid search term changes with overlapping API requests",
+          "Switching accounts or workspaces",
+          "Refreshing a shipment detail view after status events",
+          "Tab changes that load independent report data",
+          "Debugging manual subscriptions that override newer component state"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Reproduce with slow network throttling and rapidly select Account A then B",
+            "Inspect DevTools network panel to confirm request and response ordering",
+            "Trace selected account ID and view-model state to identify whether stale data overwrites newer state",
+            "Use switchMap so only the most recent selection response updates the active view",
+            "Display loading and error states explicitly through AsyncPipe",
+            "Test with a controlled delayed fake API: B should remain displayed when A resolves afterward"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-050-flow",
+              "type": "sequence",
+              "title": "Debugging stale asynchronous UI state end-to-end visualization",
+              "mermaid": "sequenceDiagram\n    actor U as Customer\n    participant C as Account component\n    participant R as RxJS switchMap pipeline\n    participant A as Account API\n    U->>C: Select account A\n    C->>R: Emit A\n    R->>A: GET /accounts/A\n    U->>C: Select account B\n    C->>R: Emit B (unsubscribe A)\n    R->>A: GET /accounts/B\n    A-->>R: B response\n    R-->>C: Render B\n    Note over R,C: Late response A is not emitted to view",
+              "caption": "Illustrative flow using synthetic data; backend authorization, version-specific rendering, and operational guarantees require application-level verification."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "account-switcher.component.ts",
+          "runtime": "Modern standalone Angular (21+) teaching example; requires a configured Angular workspace, suitable providers and a backend/mock feed where appropriate. UI templates must be checked with Angular compilation and tests before production use.",
+          "code": "import { AsyncPipe } from '@angular/common';\nimport { HttpClient } from '@angular/common/http';\nimport { Component, Injectable, inject } from '@angular/core';\nimport { BehaviorSubject, catchError, map, of, startWith, switchMap } from 'rxjs';\n\ninterface Account { id: string; displayName: string; balanceMinor: number; }\ntype AccountView =\n  | { kind: 'loading' }\n  | { kind: 'success'; account: Account }\n  | { kind: 'error' };\n\n@Injectable({ providedIn: 'root' })\nexport class AccountApi {\n  private readonly http = inject(HttpClient);\n  get(id: string) {\n    return this.http.get<Account>(`/api/accounts/${encodeURIComponent(id)}`);\n  }\n}\n\n@Component({\n  standalone: true,\n  selector: 'app-account-switcher',\n  imports: [AsyncPipe],\n  template: `\n    <button type=\"button\" (click)=\"select('A')\">Account A</button>\n    <button type=\"button\" (click)=\"select('B')\">Account B</button>\n    @if (view$ | async; as view) {\n      @switch (view.kind) {\n        @case ('loading') { <p role=\"status\">Loading account...</p> }\n        @case ('error') { <p role=\"alert\">Could not load account.</p> }\n        @case ('success') {\n          <p>{{ view.account.displayName }}: {{ view.account.balanceMinor }}</p>\n        }\n      }\n    }\n  `\n})\nexport class AccountSwitcherComponent {\n  private readonly api = inject(AccountApi);\n  private readonly selectedId = new BehaviorSubject<string>('A');\n  readonly view$ = this.selectedId.pipe(\n    switchMap(id => this.api.get(id).pipe(\n      map((account): AccountView => ({ kind: 'success', account })),\n      startWith({ kind: 'loading' } as AccountView),\n      catchError(() => of({ kind: 'error' } as AccountView))\n    ))\n  );\n  select(id: string): void { this.selectedId.next(id); }\n}\n// Backend must authorize access for the authenticated account owner.",
+          "explanation": [
+            "BehaviorSubject represents the latest selected account ID and emits an initial selection.",
+            "switchMap unsubscribes from the old inner HTTP Observable when the selected ID changes.",
+            "startWith immediately emits loading for each new selection; catchError is inside switchMap so later selections still work.",
+            "AsyncPipe subscribes and manages template subscription lifetime, including marking its view for updates.",
+            "The balance is shown as minor units for simplicity; production should format amounts with currency and precision and never use client state as a ledger."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would intentionally delay mock API responses in the banking project, reproduce the stale-account bug, then fix it with switchMap and record before/after tests.",
+          "evidenceToCollect": [
+            "Failing reproduction test: A delayed response overwrites B in naive implementation",
+            "Passing test: after selecting B, the UI never renders late A as current",
+            "DevTools capture linking selection, request URL and response ordering",
+            "Test proving backend denies account IDs the user does not own"
+          ],
+          "doNotClaim": "Suggested portfolio work, not verified professional experience. Do not claim implementation, deployment or metrics without evidence."
+        },
+        "pitfalls": [
+          "Adding detectChanges() does not fix an older response overwriting a newer state value.",
+          "Incorrectly placing catchError outside switchMap can terminate the overall selection stream after one failure.",
+          "Multiple active manual subscriptions can race even when the network responses are valid.",
+          "Overwriting a root singleton without clearing user- or tenant-specific cache can leak stale data.",
+          "Using switchMap for payment writes may cancel the client subscription but does not guarantee the transaction did not commit."
+        ],
+        "whenNotToUse": [
+          "Never use switchMap cancellation as an idempotency guarantee for financial transfers.",
+          "Do not expose account IDs without server-side ownership checks.",
+          "Do not use setTimeout or arbitrary detectChanges calls as the primary fix before locating the root cause."
+        ],
+        "alternatives": [
+          {
+            "name": "switchMap",
+            "bestFor": "Read requests where only the latest query should reach the view",
+            "tradeoff": "Previous subscription is abandoned; inappropriate for must-complete writes"
+          },
+          {
+            "name": "concatMap",
+            "bestFor": "Sequential workflows where every queued action should finish",
+            "tradeoff": "Slower actions delay subsequent ones"
+          },
+          {
+            "name": "exhaustMap",
+            "bestFor": "Ignore new triggers while one operation runs",
+            "tradeoff": "Fresh requests are dropped during the active request"
+          },
+          {
+            "name": "Query-cache invalidation",
+            "bestFor": "Stale server-derived data from retained caches",
+            "tradeoff": "Requires sound cache-key and authorization boundaries"
+          }
+        ],
+        "testing": {
+          "strategy": "Test the smallest state owner first, then an Angular component with TestBed. For HTTP-related behavior use provideHttpClient() with provideHttpClientTesting() and HttpTestingController. Include failure scenarios and verify template rendering in a real Angular workspace.",
+          "testCases": [
+            {
+              "case": "Slow A then fast B",
+              "expected": "Selecting A then B results in only B displayed after both requests settle."
+            },
+            {
+              "case": "Loading reset",
+              "expected": "Each selection emits loading before its request succeeds."
+            },
+            {
+              "case": "One request fails",
+              "expected": "Error state is displayed and a later selection can still succeed."
+            },
+            {
+              "case": "Destroy component",
+              "expected": "AsyncPipe disposes the view subscription."
+            }
+          ],
+          "negativeCases": [
+            "Select B after A and force A to resolve last: B must remain visible.",
+            "Simulate an unauthorized account response and verify sensitive details are not rendered.",
+            "Use HTTP 500 followed by a valid selection to ensure the outer stream remains active."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What steps help identify why a component still shows old data?"
+          ],
+          "intermediate": [
+            "How does switchMap handle overlapping requests and what cannot it guarantee?"
+          ],
+          "advanced": [
+            "How would you debug a stale UI involving cached API data, Signals and OnPush?"
+          ],
+          "expert": [
+            "How would you prevent cross-tenant stale data while preserving performance and auditability across a complex application?"
+          ]
+        },
+        "finalTakeaway": "Diagnose stale UI systematically and use latest-request pipelines only for appropriate read operations."
+      },
+      "learningOutcomes": [
+        "Explain debugging stale asynchronous ui state clearly with a realistic business example.",
+        "Adapt the supplied code and run the listed tests in an Angular project.",
+        "Diagnose at least one edge case, identify a sound alternative and justify the choice."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/effect",
+          "https://angular.dev/guide/zoneless",
+          "https://angular.dev/best-practices/skipping-subtrees",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Cross-checked conceptual behavior with current official Angular Signals, OnPush, zoneless and RxJS interoperability guides. JSON and TypeScript syntax/transpilation are checked separately; Angular template compilation, browser tests and Mermaid rendering are not claimed."
+      }
+    }
+  ]
+}
