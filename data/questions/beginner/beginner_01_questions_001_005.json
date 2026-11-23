@@ -1,0 +1,956 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-01",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 1,
+      "end": 5
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-001",
+      "sequence": 1,
+      "difficulty": "beginner",
+      "domain": "JavaScript Fundamentals",
+      "topic": "What is the difference between var, let, and const",
+      "question": "What is the difference between var, let, and const? Explain scope, hoisting, and reassignment.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "scope",
+        "hoisting",
+        "tdz",
+        "const",
+        "let",
+        "var"
+      ],
+      "answer": {
+        "definition": {
+          "text": "var is function-scoped; let and const are block-scoped bindings."
+        },
+        "motivation": {
+          "whyIntroduced": "JavaScript originally exposed var for local declarations. let and const were added in ES2015 to provide block scoping and clearer rebinding intent, avoiding bugs from accidental redeclaration and loops sharing a binding.",
+          "historicalNote": "This describes the underlying engineering motivation, not a claim about a single inventor or release."
+        },
+        "problemSolved": {
+          "before": "A var declared inside an if or for block can remain visible outside that block, and redeclaration is allowed in the same scope.",
+          "after": "let and const establish block-level bindings; const prevents reassignment of that binding, while let permits reassignment.",
+          "benefits": [
+            "Clearer scope boundaries",
+            "Fewer unintended redeclarations",
+            "Safer closures in loops"
+          ]
+        },
+        "characteristics": [
+          "var: function-scoped (or global when declared at top level of a script)",
+          "let: block-scoped and reassignable",
+          "const: block-scoped and not reassignable",
+          "All declarations are processed before execution, but let/const cannot be accessed before initialization (temporal dead zone)",
+          "const protects the binding, not the contents of a referenced object"
+        ],
+        "simpleAnalogy": {
+          "title": "Labels on containers",
+          "explanation": "Think of var as a label usable anywhere in a room (function), while let and const labels live inside a smaller marked area (block). A const label cannot be moved to another container, but the contents of its current container may still change."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A transaction table iterates over results and creates click handlers to open each transaction.",
+          "implementation": "Use const for each transaction identifier within an iteration, so every handler captures the intended row; keep a variable let when the UI genuinely needs to reassign a selection.",
+          "businessImpact": "Avoids selecting the wrong transaction from an asynchronously used callback.",
+          "importantConstraint": "Correct authorization and transaction access must still be checked by the server."
+        },
+        "useCases": [
+          "Default to const for values whose bindings do not change",
+          "Use let for counters or variables intentionally reassigned",
+          "Use block scope to isolate temporary results",
+          "Recognize var in legacy Angular/JavaScript codebases"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "A list of transactions is rendered",
+            "Each item gets a block-scoped identifier",
+            "The click callback closes over that identifier",
+            "A later click logs or routes to the correct transaction",
+            "Backend independently checks authorization for that identifier"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-001-flow",
+              "type": "flowchart",
+              "title": "Concept and business flow",
+              "mermaid": "flowchart TD\n    A[Transaction list] --> B[For each transaction]\n    B --> C[Create const transactionId]\n    C --> D[Create click handler]\n    D --> E[User clicks row later]\n    E --> F[Correct transaction ID selected]\n",
+              "caption": "Conceptual model; precise runtime behavior is explained in the accompanying steps."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "ang-beg-001.ts",
+          "runtime": "TypeScript 5+ compiled for modern JavaScript / Node.js 20+",
+          "code": "// Compile as TypeScript, or remove types to run as JavaScript.\nconst transactions = [{ id: 'tx-1' }, { id: 'tx-2' }];\nconst handlers: Array<() => string> = [];\n\nfor (const transaction of transactions) {\n  const transactionId = transaction.id;\n  handlers.push(() => transactionId);\n}\nconsole.log(handlers.map(handler => handler())); // ['tx-1', 'tx-2']\n\nlet selectedId: string | null = null;\nselectedId = handlers[0](); // permitted\n\nconst account = { balance: 100 };\naccount.balance = 200; // permitted; const only prevents account = ...\n// console.log(valueBeforeDeclaration); // TDZ ReferenceError\n// let valueBeforeDeclaration = 1;\n",
+          "explanation": [
+            "const transactionId is a new binding for each iteration",
+            "Every callback retains the correct iteration binding",
+            "let selectedId expresses legitimate rebinding",
+            "A const object remains mutable unless separately frozen or typed read-only"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a banking transaction-list feature, I would prefer const bindings for transaction IDs inside event handlers and let only for values that are intentionally reassigned.",
+          "evidenceToCollect": [
+            "A test proving the correct row opens after asynchronous interaction",
+            "A pull request showing consistent lint rules"
+          ],
+          "doNotClaim": "Do not say you implemented this in production unless you actually did."
+        },
+        "pitfalls": [
+          "var loop variables may cause callbacks to observe the same final variable",
+          "let and const have a temporal dead zone before declaration initialization",
+          "Top-level var in a classic script differs from top-level declarations in ES modules",
+          "const does not deeply freeze arrays or objects",
+          "Switching a legacy var to const can break code that intentionally reassigns it"
+        ],
+        "whenNotToUse": [
+          "Do not use var for new application code unless preserving an intentional legacy behavior",
+          "Do not use const when a binding must be reassigned",
+          "Do not equate const with immutable data; use immutable update patterns or Object.freeze as appropriate"
+        ],
+        "alternatives": [
+          {
+            "name": "Object.freeze or readonly typing",
+            "bestFor": "Communicating or enforcing restrictions on object mutation",
+            "tradeoff": "Object.freeze is shallow by default; TypeScript readonly is compile-time only"
+          },
+          {
+            "name": "let",
+            "bestFor": "An explicitly reassignable local binding",
+            "tradeoff": "Requires discipline to avoid accidental rebinding"
+          }
+        ],
+        "testing": {
+          "strategy": "Run examples and assert scope, callback and mutation behavior.",
+          "testCases": [
+            {
+              "case": "Loop handlers",
+              "expected": "First handler returns tx-1 and second returns tx-2"
+            },
+            {
+              "case": "Reassignment",
+              "expected": "let can be reassigned while reassigning const is rejected"
+            },
+            {
+              "case": "const object",
+              "expected": "Updating object.balance is allowed"
+            }
+          ],
+          "negativeCases": [
+            "Referencing let before initialization throws",
+            "Redeclaring let in one block is a syntax error"
+          ],
+          "verificationCommand": "npx tsc --strict --noEmit example.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "Why can a const object still be mutated?"
+          ],
+          "intermediate": [
+            "Why did var cause unexpected callbacks in older for loops?"
+          ],
+          "advanced": [
+            "How do closures and module scope interact with Angular component instances?"
+          ],
+          "expert": [
+            "How would you gradually migrate a large legacy JavaScript application to consistent declaration rules?"
+          ]
+        },
+        "finalTakeaway": "Prefer const; use let for rebinding; avoid var in new code."
+      },
+      "learningOutcomes": [
+        "Explain the concept without relying on memorized jargon",
+        "Trace the example from input to output",
+        "Identify at least one failure or misuse case"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": false
+      }
+    },
+    {
+      "id": "ANG-BEG-002",
+      "sequence": 2,
+      "difficulty": "beginner",
+      "domain": "JavaScript Fundamentals",
+      "topic": "What is the difference between == and === in JavaScript",
+      "question": "What is the difference between == and === in JavaScript?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "equality",
+        "coercion",
+        "route-parameters",
+        "validation"
+      ],
+      "answer": {
+        "definition": {
+          "text": "=== compares without coercion; == may convert operands before comparison."
+        },
+        "motivation": {
+          "whyIntroduced": "JavaScript supports loose equality for interoperability among values of different types, while strict equality provides a more predictable comparison that avoids implicit conversions.",
+          "historicalNote": "This describes the underlying engineering motivation, not a claim about a single inventor or release."
+        },
+        "problemSolved": {
+          "before": "Loose equality can make unrelated-looking values compare equal after coercion, such as the number 0 and the string \"0\".",
+          "after": "Strict equality compares using the language’s strict equality semantics without coercing operand types.",
+          "benefits": [
+            "More predictable conditional expressions",
+            "Fewer authorization- or validation-adjacent mistakes",
+            "Clearer intent for reviewers"
+          ]
+        },
+        "characteristics": [
+          "=== does not coerce different operand types",
+          "== follows abstract equality conversion rules",
+          "NaN is unequal to itself under either operator",
+          "Objects are compared by reference identity under both operators",
+          "null == undefined is true; null === undefined is false"
+        ],
+        "simpleAnalogy": {
+          "title": "Checking badges",
+          "explanation": "A loose check may treat a badge numbered 7 and a badge labeled \"7\" as interchangeable; a strict check requires the actual kind of badge and value to align."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A shopping cart holds a numeric product ID while a route parameter arrives as a string.",
+          "implementation": "Parse and validate the route parameter into the expected type, then use === rather than relying on implicit == conversion.",
+          "businessImpact": "Avoids silently matching malformed or unexpectedly typed identifiers.",
+          "importantConstraint": "Regardless of client comparisons, the backend must validate ownership, prices and order data."
+        },
+        "useCases": [
+          "Checking discriminant values and statuses",
+          "Comparing validated IDs of the same type",
+          "Checking for an explicitly undefined value",
+          "Preventing unexpected form-value coercions"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular router supplies a route parameter as text",
+            "Validate the text as a well-formed numeric identifier",
+            "Convert it to the domain’s number type",
+            "Find the product with strict equality",
+            "Server independently validates the product on checkout"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-002-flow",
+              "type": "flowchart",
+              "title": "Concept and business flow",
+              "mermaid": "flowchart LR\n    A[Route param as string] --> B{Valid numeric ID?}\n    B -->|No| C[Show invalid request]\n    B -->|Yes| D[Convert to number]\n    D --> E[Compare with ===]\n    E --> F[Display matching product]\n",
+              "caption": "Conceptual model; precise runtime behavior is explained in the accompanying steps."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "ang-beg-002.ts",
+          "runtime": "TypeScript 5+ compiled for modern JavaScript / Node.js 20+",
+          "code": "interface Product { id: number; title: string; }\nconst products: Product[] = [{ id: 42, title: 'Laptop' }];\nconst rawRouteId = '42';\n\nconst id = Number(rawRouteId);\nconst isValidId = /^\\d+$/.test(rawRouteId) && Number.isSafeInteger(id);\nconst selected = isValidId\n  ? products.find(product => product.id === id)\n  : undefined;\nconsole.log(selected?.title); // Laptop\nconsole.log((42 as unknown) == ('42' as unknown)); // true, due to coercion (demo only)\nconsole.log(42 === Number('42')); // true\nconsole.log(null == undefined); // true\nconsole.log(null === undefined); // false\nconsole.log(Number.NaN === Number.NaN); // false\n",
+          "explanation": [
+            "The route parameter is validated before conversion",
+            "Strict equality compares numbers with numbers",
+            "An invalid identifier yields no selected product rather than accidental matching",
+            "The == line is a demonstration, not a recommendation"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In an e-commerce product details route, I would validate the product ID type before searching cached product models with strict equality.",
+          "evidenceToCollect": [
+            "Unit tests for invalid, missing and valid product IDs",
+            "A typed route-to-model conversion function"
+          ],
+          "doNotClaim": "Do not represent this as previous work unless completed."
+        },
+        "pitfalls": [
+          "0 == false is true but 0 === false is false",
+          "A pair of distinct object literals never compare equal by identity",
+          "NaN is not equal to itself; Number.isNaN detects it",
+          "null and undefined compare equal under ==",
+          "Number(\" \") becomes 0, so conversion must be validated"
+        ],
+        "whenNotToUse": [
+          "Avoid == in normal application comparisons",
+          "Do not assume === performs deep equality for arrays or objects",
+          "Do not use === alone to validate untrusted external input"
+        ],
+        "alternatives": [
+          {
+            "name": "Object.is",
+            "bestFor": "Distinguishing +0 from -0 and matching NaN",
+            "tradeoff": "Slightly different semantics from strict equality"
+          },
+          {
+            "name": "Deep comparison",
+            "bestFor": "Comparing object structure when truly necessary",
+            "tradeoff": "More expensive and requires clear semantics"
+          }
+        ],
+        "testing": {
+          "strategy": "Check boundaries where external strings are converted to domain types.",
+          "testCases": [
+            {
+              "case": "Valid ID 42",
+              "expected": "Numeric ID 42 matches product ID 42"
+            },
+            {
+              "case": "Invalid ID 42x",
+              "expected": "Rejected before comparison"
+            },
+            {
+              "case": "Objects",
+              "expected": "Different object instances are not equal under ==="
+            }
+          ],
+          "negativeCases": [
+            "Whitespace should not become an accepted zero identifier",
+            "null should not match undefined with ==="
+          ],
+          "verificationCommand": "npx tsc --strict --noEmit example.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "Why is 0 == false true?"
+          ],
+          "intermediate": [
+            "When does Object.is differ from ===?"
+          ],
+          "advanced": [
+            "Why is reference equality important in UI state updates?"
+          ],
+          "expert": [
+            "How would you enforce ID normalization at API boundaries in a large application?"
+          ]
+        },
+        "finalTakeaway": "Normalize external values, then compare strictly and deliberately."
+      },
+      "learningOutcomes": [
+        "Explain the concept without relying on memorized jargon",
+        "Trace the example from input to output",
+        "Identify at least one failure or misuse case"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": false
+      }
+    },
+    {
+      "id": "ANG-BEG-003",
+      "sequence": 3,
+      "difficulty": "beginner",
+      "domain": "JavaScript Fundamentals",
+      "topic": "What are closures in JavaScript",
+      "question": "What are closures in JavaScript? Demonstrate a real use case.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "closures",
+        "lexical-scope",
+        "callbacks",
+        "factories"
+      ],
+      "answer": {
+        "definition": {
+          "text": "A closure retains access to its surrounding lexical variables."
+        },
+        "motivation": {
+          "whyIntroduced": "Closures arise naturally from lexical scoping and first-class functions. They make it possible for callbacks and returned functions to keep using values from the scope where they were defined after that scope has returned.",
+          "historicalNote": "This describes the underlying engineering motivation, not a claim about a single inventor or release."
+        },
+        "problemSolved": {
+          "before": "A callback may need configuration or private state that is not passed as an argument whenever it runs.",
+          "after": "A function captures access to its lexical environment, allowing later calls to use that configuration or state.",
+          "benefits": [
+            "Functions remember lexical surroundings",
+            "State can remain private without global variables",
+            "Callbacks can retain per-instance configuration"
+          ]
+        },
+        "characteristics": [
+          "Closures capture bindings rather than frozen snapshots",
+          "Captured variables can change between calls",
+          "Each factory invocation can create independent state",
+          "A closure may extend the lifetime of captured objects",
+          "Closures occur in event handlers, subscriptions and callbacks"
+        ],
+        "simpleAnalogy": {
+          "title": "A labeled locker",
+          "explanation": "You receive a key to a locker containing a counter. Even after the receptionist leaves, the key still accesses the same locker; a different visitor can receive a key to a different locker."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A shipment dashboard creates a status filter for one carrier without showing other carriers’ shipments.",
+          "implementation": "Use a function factory that captures a carrier ID to create a reusable filtering predicate for the appropriate UI data.",
+          "businessImpact": "Keeps the filter logic readable and scoped to the selected carrier.",
+          "importantConstraint": "This is only a UI filter; backend authorization must enforce carrier data separation."
+        },
+        "useCases": [
+          "Creating parameterized array filters",
+          "Preserving state inside callbacks",
+          "Factory functions for formatters and validators",
+          "Event listeners capturing row identifiers",
+          "Encapsulating state without globals"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Carrier ID arrives from a selected filter",
+            "A filter factory receives the carrier ID",
+            "It returns a function closing over that ID",
+            "A shipment array is filtered by the returned function",
+            "Only the matching UI rows are shown; server authorization is independent"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-003-flow",
+              "type": "flowchart",
+              "title": "Concept and business flow",
+              "mermaid": "flowchart TD\n    A[Select carrier C-1] --> B[makeCarrierFilter C-1]\n    B --> C[Closure retains carrierId]\n    C --> D[Shipments.filter predicate]\n    D --> E[Matching rows rendered]\n",
+              "caption": "Conceptual model; precise runtime behavior is explained in the accompanying steps."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "ang-beg-003.ts",
+          "runtime": "TypeScript 5+ compiled for modern JavaScript / Node.js 20+",
+          "code": "interface Shipment { id: string; carrierId: string; }\nconst shipments: Shipment[] = [\n  { id: 's1', carrierId: 'C-1' },\n  { id: 's2', carrierId: 'C-2' },\n  { id: 's3', carrierId: 'C-1' }\n];\n\nfunction makeCarrierFilter(carrierId: string) {\n  return (shipment: Shipment): boolean => shipment.carrierId === carrierId;\n}\nconst onlyCarrierOne = makeCarrierFilter('C-1');\nconsole.log(shipments.filter(onlyCarrierOne).map(s => s.id)); // ['s1','s3']\n\nfunction makeCounter() {\n  let count = 0;\n  return () => ++count;\n}\nconst first = makeCounter();\nconst second = makeCounter();\nconsole.log(first(), first(), second()); // 1, 2, 1\n",
+          "explanation": [
+            "The returned predicate retains access to the carrierId binding",
+            "Counter factory calls create separate closure environments",
+            "No global count is needed",
+            "The filtered data is presentation logic; it is not authorization"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a logistics dashboard, I would create carrier-specific filter predicates using closures and separately enforce carrier permissions in the tracking API.",
+          "evidenceToCollect": [
+            "Unit tests for separate carrier filter instances",
+            "API authorization tests"
+          ],
+          "doNotClaim": "This is a suggested implementation, not a claim about your past projects."
+        },
+        "pitfalls": [
+          "Closure does not freeze captured state; changing an outer variable changes observed values",
+          "Long-lived event handlers can retain large objects and cause memory pressure",
+          "var loop captures can unexpectedly share one binding",
+          "Closures can hide state in ways that make debugging harder",
+          "UI filtering cannot provide access control"
+        ],
+        "whenNotToUse": [
+          "Do not use a closure when plain function arguments are clearer",
+          "Do not capture entire large objects in long-lived callbacks unnecessarily",
+          "Do not treat a client-side closure as a security boundary"
+        ],
+        "alternatives": [
+          {
+            "name": "Explicit function arguments",
+            "bestFor": "Pure reusable computations",
+            "tradeoff": "Caller must pass context each time"
+          },
+          {
+            "name": "Class or object instance",
+            "bestFor": "Complex stateful behavior with an explicit API",
+            "tradeoff": "More structure and lifecycle management"
+          }
+        ],
+        "testing": {
+          "strategy": "Verify independence, captured state and memory cleanup.",
+          "testCases": [
+            {
+              "case": "Carrier C-1 filter",
+              "expected": "Only s1 and s3 are returned"
+            },
+            {
+              "case": "Separate counters",
+              "expected": "Incrementing one does not increment another"
+            }
+          ],
+          "negativeCases": [
+            "Changing a captured let binding affects later invocations",
+            "Removing UI filter does not grant backend access"
+          ],
+          "verificationCommand": "npx tsc --strict --noEmit example.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "What happens to local variables after their function returns when a closure retains them?"
+          ],
+          "intermediate": [
+            "What is the difference between closure capture with var and let in a loop?"
+          ],
+          "advanced": [
+            "How can closures contribute to memory leaks in Angular subscriptions?"
+          ],
+          "expert": [
+            "How would you investigate retained closures in heap snapshots of a long-running dashboard?"
+          ]
+        },
+        "finalTakeaway": "Closures retain lexical context; use them intentionally and clean up callbacks."
+      },
+      "learningOutcomes": [
+        "Explain the concept without relying on memorized jargon",
+        "Trace the example from input to output",
+        "Identify at least one failure or misuse case"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": false
+      }
+    },
+    {
+      "id": "ANG-BEG-004",
+      "sequence": 4,
+      "difficulty": "beginner",
+      "domain": "JavaScript Fundamentals",
+      "topic": "What is the difference between synchronous and asynchronous JavaScript",
+      "question": "What is the difference between synchronous and asynchronous JavaScript? Explain the event loop at a basic level.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "event-loop",
+        "async-await",
+        "promises",
+        "microtasks",
+        "timers"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Synchronous work blocks execution; asynchronous work resumes through scheduled callbacks."
+        },
+        "motivation": {
+          "whyIntroduced": "Browser and server programs must handle timers, network activity and user interactions without blocking the JavaScript execution thread while waiting for I/O. Scheduling APIs and event-loop processing allow that cooperation.",
+          "historicalNote": "This describes the underlying engineering motivation, not a claim about a single inventor or release."
+        },
+        "problemSolved": {
+          "before": "A synchronous wait for a network response would freeze UI work and prevent handling input while the wait lasts.",
+          "after": "An asynchronous operation initiates work, returns control, and later schedules continuation when a result or event becomes available.",
+          "benefits": [
+            "Responsive interfaces during I/O waits",
+            "Readable continuations using async/await",
+            "Ability to handle independent activities without blocking on network latency"
+          ]
+        },
+        "characteristics": [
+          "Synchronous statements run to completion on the current call stack",
+          "Promise reactions run as microtasks after the current synchronous stack",
+          "Timers usually schedule later tasks rather than execute at an exact time",
+          "Microtasks drain before the event loop proceeds to another task in typical browser scheduling",
+          "Long CPU-bound JavaScript still blocks the main thread even when invoked from a callback"
+        ],
+        "simpleAnalogy": {
+          "title": "A single cashier",
+          "explanation": "A cashier can start a ticket for an item that needs preparation, serve other customers meanwhile, and finish that ticket when the result arrives. But a long calculation done directly at the register still blocks the line."
+        },
+        "industryExample": {
+          "industry": "healthcare",
+          "scenario": "A scheduling screen loads available clinician slots while remaining responsive to user interactions.",
+          "implementation": "The app requests slots asynchronously, displays a loading state, and updates the UI after the response without blocking keystrokes and clicks.",
+          "businessImpact": "Users can navigate and interact while data is fetched.",
+          "importantConstraint": "Asynchronous fetching does not make backend processing faster or guarantee a slot remains available."
+        },
+        "useCases": [
+          "HTTP calls and UI loading states",
+          "Promise-based processing",
+          "Handling clicks and timers",
+          "Debouncing input",
+          "Managing retries and cancellations at the appropriate layer"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "The UI starts with an empty availability state",
+            "HTTP request begins asynchronously",
+            "JavaScript returns control so users can interact",
+            "The HTTP result eventually schedules a continuation",
+            "State updates and Angular renders the available appointment slots"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-004-flow",
+              "type": "sequence",
+              "title": "Concept and business flow",
+              "mermaid": "sequenceDiagram\n    participant U as User\n    participant UI as Angular UI\n    participant API as Scheduling API\n    U->>UI: Open schedule\n    UI->>API: GET /slots\n    Note over UI: UI stays responsive\n    API-->>UI: Available slots\n    UI-->>U: Render slots\n",
+              "caption": "Conceptual model; precise runtime behavior is explained in the accompanying steps."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "ang-beg-004.ts",
+          "runtime": "TypeScript 5+ compiled for modern JavaScript / Node.js 20+",
+          "code": "async function fetchSlotCount(): Promise<number> {\n  // Simulate asynchronous I/O; actual apps use HttpClient or fetch.\n  return Promise.resolve(3);\n}\n\nconsole.log('A: synchronous start');\nsetTimeout(() => console.log('D: timer task'), 0);\nPromise.resolve().then(() => console.log('C: promise microtask'));\nconsole.log('B: synchronous end');\n// Typical output in a modern JS runtime: A, B, C, D\n\nasync function showSlots() {\n  console.log('Loading slots...');\n  try {\n    const count = await fetchSlotCount();\n    console.log(`Available slots: ${count}`);\n  } catch (error) {\n    console.error('Could not load slots', error);\n  }\n}\nvoid showSlots();\n",
+          "explanation": [
+            "Synchronous logs A and B execute before later callbacks",
+            "Promise .then is a microtask; setTimeout callback runs as a later task",
+            "await suspends only its async function, not the whole JavaScript thread",
+            "Actual order relative to other platform events depends on environment and scheduling"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a clinician scheduling page, I would show a loading indicator, request slot data asynchronously, and handle errors without freezing the interface.",
+          "evidenceToCollect": [
+            "A browser performance recording showing responsive input",
+            "A test covering loading and error states"
+          ],
+          "doNotClaim": "Do not assert performance measurements without actually collecting them."
+        },
+        "pitfalls": [
+          "An async function can perform expensive synchronous work before its first await",
+          "setTimeout(..., 0) is not an immediate synchronous callback",
+          "Too many recursively scheduled microtasks can delay rendering",
+          "An unhandled promise rejection can hide failed work",
+          "Async responses may arrive out of order and overwrite newer state"
+        ],
+        "whenNotToUse": [
+          "Do not use busy-wait loops for network completion",
+          "Do not assume async automatically moves CPU-intensive calculations off the main thread",
+          "Do not assume timer delays are exact deadlines"
+        ],
+        "alternatives": [
+          {
+            "name": "Web Worker",
+            "bestFor": "Heavy CPU-bound browser calculations",
+            "tradeoff": "Message passing, serialization and operational complexity"
+          },
+          {
+            "name": "RxJS Observable",
+            "bestFor": "Composable streams and cancellable Angular HTTP subscriptions",
+            "tradeoff": "Requires understanding subscription and operator behavior"
+          }
+        ],
+        "testing": {
+          "strategy": "Validate observable sequencing and UI states; use DevTools to inspect main-thread blocking.",
+          "testCases": [
+            {
+              "case": "Scheduling order",
+              "expected": "Synchronous logs occur before the Promise microtask, which occurs before the timer task in the shown example"
+            },
+            {
+              "case": "Successful slots",
+              "expected": "Loading message then available-slot message"
+            }
+          ],
+          "negativeCases": [
+            "Rejected request shows an error state",
+            "CPU-heavy synchronous code may freeze UI despite surrounding async functions"
+          ],
+          "verificationCommand": "npx tsx example.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "Why does Promise.then run after synchronous console.log?"
+          ],
+          "intermediate": [
+            "Why can an older API response overwrite a newer search result?"
+          ],
+          "advanced": [
+            "How would you profile long tasks that block browser input?"
+          ],
+          "expert": [
+            "How would you design responsive scheduling UIs under slow networks and large data loads?"
+          ]
+        },
+        "finalTakeaway": "Asynchrony preserves responsiveness, but correctness still requires managing ordering and errors."
+      },
+      "learningOutcomes": [
+        "Explain the concept without relying on memorized jargon",
+        "Trace the example from input to output",
+        "Identify at least one failure or misuse case"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": false
+      }
+    },
+    {
+      "id": "ANG-BEG-005",
+      "sequence": 5,
+      "difficulty": "beginner",
+      "domain": "JavaScript Fundamentals",
+      "topic": "Given an array of objects, how would you filter, sort, group, and transform it using map(), filter(), and reduce()",
+      "question": "Given an array of objects, how would you filter, sort, group, and transform it using map(), filter(), and reduce()?",
+      "questionType": "coding",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "arrays",
+        "map",
+        "filter",
+        "reduce",
+        "sort",
+        "aggregation",
+        "money"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Filter selects, map transforms, reduce accumulates, and sort orders."
+        },
+        "motivation": {
+          "whyIntroduced": "Applications frequently receive collections from APIs but need derived views such as filtered transactions, totals and grouped summaries. Array methods offer declarative, composable operations for such transformations.",
+          "historicalNote": "This describes the underlying engineering motivation, not a claim about a single inventor or release."
+        },
+        "problemSolved": {
+          "before": "Imperative loops often mix selection, transformation and aggregation into one block, making intent and tests less obvious.",
+          "after": "Use filter to select records, map to reshape them, reduce to accumulate results, and sort to define order.",
+          "benefits": [
+            "Clearer declarative transformations",
+            "Smaller testable operations",
+            "Avoided accidental changes to source collections when copying before sort"
+          ]
+        },
+        "characteristics": [
+          "filter returns selected elements in a new array",
+          "map returns a new array with transformed values",
+          "reduce combines values into a chosen accumulator",
+          "sort mutates the original array; use toSorted or copy before sorting",
+          "Comparator functions should return negative, zero or positive numbers"
+        ],
+        "simpleAnalogy": {
+          "title": "Sorting laundry",
+          "explanation": "Filter keeps only blue clothes, sort orders them by size, map converts each item to a label, and reduce counts how many items belong to each size group."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A banking dashboard must show completed debit transactions, newest first, with a total amount and per-category totals.",
+          "implementation": "Filter transactions to completed debits, sort a copied array by posting timestamp, map records to view models, and reduce them to category aggregates.",
+          "businessImpact": "Produces a clear client-side view of already-authorized records.",
+          "importantConstraint": "Use integer minor currency units or a suitable decimal-money representation; do not use floating-point arithmetic for authoritative financial accounting."
+        },
+        "useCases": [
+          "Product catalog filtering",
+          "Transaction or invoice summaries",
+          "Shipment counts by status",
+          "Healthcare appointment lists",
+          "SaaS reports and grouping"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Backend returns authorized transaction DTOs",
+            "Select completed debit records",
+            "Sort newest to oldest without mutating incoming data",
+            "Transform records to lightweight view models",
+            "Accumulate totals grouped by category",
+            "Render summary and transaction rows"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-005-flow",
+              "type": "flowchart",
+              "title": "Concept and business flow",
+              "mermaid": "flowchart LR\n    A[Authorized API records] --> B[filter completed debits]\n    B --> C[sort copied records]\n    C --> D[map UI rows]\n    C --> E[reduce totals by category]\n    D --> F[Angular transaction list]\n    E --> G[Angular summary cards]\n",
+              "caption": "Conceptual model; precise runtime behavior is explained in the accompanying steps."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "ang-beg-005.ts",
+          "runtime": "TypeScript 5+ compiled for modern JavaScript / Node.js 20+",
+          "code": "interface Transaction {\n  id: string;\n  kind: 'debit' | 'credit';\n  status: 'completed' | 'pending';\n  category: string;\n  amountMinor: number; // cents/paise; single currency in this demo\n  postedAt: string;    // normalized ISO timestamp\n}\nconst transactions: Transaction[] = [\n  { id: 't1', kind: 'debit', status: 'completed', category: 'food', amountMinor: 1250, postedAt: '2026-01-03T10:00:00Z' },\n  { id: 't2', kind: 'credit', status: 'completed', category: 'salary', amountMinor: 50000, postedAt: '2026-01-02T10:00:00Z' },\n  { id: 't3', kind: 'debit', status: 'completed', category: 'food', amountMinor: 750, postedAt: '2026-01-04T10:00:00Z' },\n  { id: 't4', kind: 'debit', status: 'pending', category: 'travel', amountMinor: 2200, postedAt: '2026-01-05T10:00:00Z' }\n];\n\nconst completedDebits = transactions.filter(t => t.kind === 'debit' && t.status === 'completed');\nconst newestFirst = [...completedDebits].sort((a, b) =>\n  Date.parse(b.postedAt) - Date.parse(a.postedAt)\n);\nconst rows = newestFirst.map(({ id, category, amountMinor }) => ({\n  id, category, amountMinor\n}));\nconst byCategory = completedDebits.reduce<Record<string, number>>((totals, t) => {\n  totals[t.category] = (totals[t.category] ?? 0) + t.amountMinor;\n  return totals;\n}, {});\nconsole.log(rows.map(r => r.id)); // ['t3', 't1']\nconsole.log(byCategory); // { food: 2000 }\nconsole.log(transactions[0].id); // Original array order unchanged\n",
+          "explanation": [
+            "Filtering produces only completed debit rows",
+            "Sorting uses a copy so shared API data is not reordered",
+            "Grouping reduces into a category-to-total dictionary",
+            "Amounts are stored in integer minor units rather than floats",
+            "For large collections, move filtering/aggregation server-side or use pagination"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a banking transaction dashboard, I would transform API records into display rows and grouped category totals while preserving the original array for other consumers.",
+          "evidenceToCollect": [
+            "Unit tests for sorting and aggregation",
+            "Profiler evidence if dataset is large"
+          ],
+          "doNotClaim": "Do not claim financial correctness based solely on client totals."
+        },
+        "pitfalls": [
+          "sort mutates its receiver unless a copy or toSorted is used",
+          "Comparing date strings is safe only when formats and time zones are normalized",
+          "reduce with a mutable accumulator is okay locally but should not mutate the source items",
+          "Grouping across multiple currencies without conversion is incorrect",
+          "Client-side pagination followed by aggregation only summarizes the loaded page"
+        ],
+        "whenNotToUse": [
+          "Do not aggregate millions of records on the main thread when a backend query is appropriate",
+          "Do not use floating-point totals as the authoritative accounting ledger",
+          "Do not mutate shared input arrays with sort when other UI features depend on their original order"
+        ],
+        "alternatives": [
+          {
+            "name": "Server aggregation (SQL GROUP BY)",
+            "bestFor": "Large datasets and authoritative reports",
+            "tradeoff": "Requires an API contract and query optimization"
+          },
+          {
+            "name": "RxJS/Signals computed derivation",
+            "bestFor": "Keeping Angular UI projections reactive",
+            "tradeoff": "Derivation still needs efficient array operations"
+          },
+          {
+            "name": "toSorted",
+            "bestFor": "Non-mutating array ordering on supported runtimes",
+            "tradeoff": "Check target environment compatibility"
+          }
+        ],
+        "testing": {
+          "strategy": "Assert transformations against a small deterministic fixture, then add malformed and scale cases.",
+          "testCases": [
+            {
+              "case": "Completed debit selection",
+              "expected": "t1 and t3 only"
+            },
+            {
+              "case": "Sort order",
+              "expected": "t3 precedes t1"
+            },
+            {
+              "case": "Grouped total",
+              "expected": "food totals 2000 minor units"
+            },
+            {
+              "case": "Input immutability",
+              "expected": "transactions retains original ordering"
+            }
+          ],
+          "negativeCases": [
+            "Pending debits excluded",
+            "Credits excluded",
+            "Mixed currencies must be separated or converted correctly"
+          ],
+          "verificationCommand": "npx tsx example.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "When do you use map instead of filter?"
+          ],
+          "intermediate": [
+            "How would you build a derived Angular Signal for category totals?"
+          ],
+          "advanced": [
+            "How would you optimize virtualized tables and server pagination?"
+          ],
+          "expert": [
+            "How would you design authoritative financial reporting while avoiding inconsistent client projections?"
+          ]
+        },
+        "finalTakeaway": "Compose array operations for clarity, preserve inputs, and validate domain semantics."
+      },
+      "learningOutcomes": [
+        "Explain the concept without relying on memorized jargon",
+        "Trace the example from input to output",
+        "Identify at least one failure or misuse case"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": false
+      }
+    }
+  ]
+}

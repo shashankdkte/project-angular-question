@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Angular Industry Mastery Question Batch 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "dataset",
+    "batch",
+    "answerSectionOrder",
+    "questions"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "dataset": {
+      "type": "string"
+    },
+    "batch": {
+      "type": "object",
+      "required": [
+        "id",
+        "difficulty",
+        "questionRange",
+        "questionCount",
+        "curriculumVersion"
+      ]
+    },
+    "answerSectionOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 15,
+      "maxItems": 15
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "sequence",
+          "difficulty",
+          "domain",
+          "topic",
+          "question",
+          "questionType",
+          "priority",
+          "roles",
+          "industries",
+          "tags",
+          "answer",
+          "learningOutcomes",
+          "sourceNotes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^ANG-BEG-[0-9]{3}$"
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "difficulty": {
+            "const": "beginner"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "question": {
+            "type": "string"
+          },
+          "questionType": {
+            "enum": [
+              "conceptual",
+              "coding",
+              "debugging",
+              "scenario",
+              "architecture"
+            ]
+          },
+          "priority": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "industries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "answer": {
+            "type": "object",
+            "required": [
+              "definition",
+              "motivation",
+              "problemSolved",
+              "characteristics",
+              "simpleAnalogy",
+              "industryExample",
+              "useCases",
+              "endToEndFlow",
+              "codeExample",
+              "projectExperience",
+              "pitfalls",
+              "whenNotToUse",
+              "alternatives",
+              "testing",
+              "followUps",
+              "finalTakeaway"
+            ],
+            "properties": {
+              "definition": {
+                "type": "object"
+              },
+              "motivation": {
+                "type": "object"
+              },
+              "problemSolved": {
+                "type": "object"
+              },
+              "characteristics": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 5
+              },
+              "simpleAnalogy": {
+                "type": "object"
+              },
+              "industryExample": {
+                "type": "object"
+              },
+              "useCases": {
+                "type": "array"
+              },
+              "endToEndFlow": {
+                "type": "object"
+              },
+              "codeExample": {
+                "type": "object"
+              },
+              "projectExperience": {
+                "type": "object"
+              },
+              "pitfalls": {
+                "type": "array"
+              },
+              "whenNotToUse": {
+                "type": "array"
+              },
+              "alternatives": {
+                "type": "array"
+              },
+              "testing": {
+                "type": "object"
+              },
+              "followUps": {
+                "type": "object"
+              },
+              "finalTakeaway": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          },
+          "learningOutcomes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourceNotes": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}
