@@ -1,0 +1,1006 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-03",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 11,
+      "end": 15
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-011",
+      "sequence": 11,
+      "difficulty": "beginner",
+      "domain": "Angular Fundamentals",
+      "topic": "What is Angular and how it compares with React",
+      "question": "What is Angular, and how is it different from a JavaScript library such as React?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "framework",
+        "react",
+        "routing",
+        "dependency-injection"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Angular provides an integrated framework for building web applications."
+        },
+        "motivation": {
+          "whyIntroduced": "Large web products need reusable UI composition, routing, forms, dependency management, template compilation and consistent conventions. Angular integrates these capabilities under one maintained framework.",
+          "historicalNote": "Angular is a TypeScript-centric web framework; React primarily provides a component rendering library and an ecosystem of companion solutions. Both can build sophisticated applications."
+        },
+        "problemSolved": {
+          "before": "Teams assemble unrelated UI, routing and state tools, and must establish conventions across packages themselves.",
+          "after": "Angular supplies a cohesive application model, integrated compiler and first-party routing, forms, HTTP and dependency injection.",
+          "benefits": [
+            "Consistent project conventions",
+            "First-party framework integrations",
+            "Template compilation and dependency injection"
+          ]
+        },
+        "characteristics": [
+          "Component-based rendering with templates and TypeScript classes",
+          "Official dependency injection, routing and form tooling",
+          "Reactive views with Signals and RxJS integration",
+          "Standalone components for composition and application bootstrapping",
+          "Angular CLI and AOT compilation tooling"
+        ],
+        "simpleAnalogy": {
+          "title": "A complete workshop versus a box of tools",
+          "explanation": "A framework resembles a well-equipped workshop with standard workstations and established processes. A UI library provides a key workstation; teams choose the remaining equipment. Neither approach guarantees quality by itself."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A banking portal needs account views, transfers, navigation, protected API access and consistent error handling.",
+          "implementation": "Build standalone components for account pages, the Angular Router for screens, injected services for API access and reactive forms for transfer input.",
+          "businessImpact": "Provides a predictable foundation across multiple frontend teams and features.",
+          "importantConstraint": "Angular does not automatically make payments secure: backend authorization, idempotency and financial rules remain server responsibilities."
+        },
+        "useCases": [
+          "Large multi-feature internal portals",
+          "Public applications needing coordinated routing and forms",
+          "Long-lived apps developed by multiple teams",
+          "Component libraries and design systems",
+          "SSR or client-rendered web applications"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Browser loads index.html and JavaScript bundles",
+            "Bootstrap creates the Angular application and root component",
+            "Root template renders child components and routing outlet",
+            "User navigates to accounts or transfers",
+            "Component calls an injected service that contacts an authorized backend",
+            "Angular updates the UI when state changes"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-011-flow",
+              "type": "flowchart",
+              "title": "End-to-end technical and domain flow",
+              "mermaid": "flowchart TD\n  A[Browser loads application] --> B[Angular bootstrap]\n  B --> C[Root component]\n  C --> D[Router outlet]\n  D --> E[Account page]\n  E --> F[Injected account service]\n  F --> G[Authorized backend API]\n  G --> H[Database or downstream service]",
+              "caption": "This diagram separates Angular rendering and browser behavior from services and backend authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "src/app/app.component.ts + src/main.ts",
+          "runtime": "Angular 20+ standalone application; Angular CLI + strict TypeScript + browser runtime. Files shown with // FILE: markers.",
+          "code": "// FILE: src/app/app.component.ts\nimport { Component, signal } from '@angular/core';\n\n@Component({\n  selector: 'app-root',\n  standalone: true,\n  template: `\n    <main>\n      <h1>Banking learning portal</h1>\n      <button type=\"button\" (click)=\"visits.update(n => n + 1)\">\n        Refresh preview\n      </button>\n      <p>Preview refresh count: {{ visits() }}</p>\n    </main>\n  `\n})\nexport class AppComponent {\n  readonly visits = signal(0);\n}\n\n// FILE: src/main.ts\nimport { bootstrapApplication } from '@angular/platform-browser';\nimport { AppComponent } from './app/app.component';\n\nbootstrapApplication(AppComponent).catch(console.error);\n",
+          "explanation": [
+            "The standalone AppComponent defines the UI through a template and a TypeScript class",
+            "signal(0) stores local reactive state; invoking visits() reads it in the template",
+            "bootstrapApplication instantiates the Angular application",
+            "This is intentionally a minimal UI; add routing, services and backend integration in subsequent features"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "For a banking training app, I would bootstrap a standalone shell and add account routes, typed services, transfer forms and authorization-aware navigation.",
+          "evidenceToCollect": [
+            "Commit showing the root component and bootstrap file",
+            "Screenshot or browser test of button interaction",
+            "Explanation of how a route uses a service to call an API"
+          ],
+          "doNotClaim": "Use conditional language until implemented and tested; do not claim production delivery without evidence."
+        },
+        "pitfalls": [
+          "Angular and React are not equivalent batteries-included packages",
+          "Angular templates and decorators are compiled; they are not merely runtime string interpolation",
+          "Frontend route guards do not replace server authorization",
+          "Large apps still require disciplined architecture and dependency choices"
+        ],
+        "whenNotToUse": [
+          "Do not introduce a large Angular stack for an isolated static HTML fragment without meaningful application needs",
+          "Do not assume framework choice alone fixes poor data models or security",
+          "Do not force full client-side rendering where a static page meets requirements more simply"
+        ],
+        "alternatives": [
+          {
+            "name": "React with selected ecosystem libraries",
+            "bestFor": "Teams preferring flexible choices for routing, forms and data fetching",
+            "tradeoff": "More architecture decisions and integration responsibilities"
+          },
+          {
+            "name": "Static HTML or web components",
+            "bestFor": "Small static widgets or content-focused pages",
+            "tradeoff": "Less built-in application infrastructure"
+          }
+        ],
+        "testing": {
+          "strategy": "Create the root component and test its rendering and event response; verify browser console and build output.",
+          "testCases": [
+            {
+              "case": "Application startup",
+              "expected": "Root heading and button render without bootstrap errors"
+            },
+            {
+              "case": "Button interaction",
+              "expected": "Count changes from 0 to 1 and view updates"
+            },
+            {
+              "case": "Root composition",
+              "expected": "Standalone root component bootstraps without an NgModule"
+            }
+          ],
+          "negativeCases": [
+            "Removing the root host element from index.html prevents expected bootstrap rendering",
+            "A runtime error during bootstrap should be surfaced rather than swallowed"
+          ],
+          "verificationCommand": "npm run start; npm run build; npm test"
+        },
+        "followUps": {
+          "beginner": [
+            "What does the @Component decorator describe?"
+          ],
+          "intermediate": [
+            "Why does Angular use compilation for templates?"
+          ],
+          "advanced": [
+            "How would you choose CSR, SSR or prerendering for different routes?"
+          ],
+          "expert": [
+            "How would you assess Angular versus React for a regulated multi-team platform?"
+          ]
+        },
+        "finalTakeaway": "Choose Angular for its integrated application model, not automatic correctness."
+      },
+      "learningOutcomes": [
+        "Identify the main services Angular provides",
+        "Explain the meaningful distinction between framework and UI library",
+        "Trace a root component bootstrap and interaction"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/overview",
+          "https://angular.dev/guide/components",
+          "https://angular.dev/api/platform-browser/bootstrapApplication"
+        ],
+        "verificationScope": "Checked against Angular official docs; full Angular compilation requires a generated project with packages installed."
+      }
+    },
+    {
+      "id": "ANG-BEG-012",
+      "sequence": 12,
+      "difficulty": "beginner",
+      "domain": "Angular Fundamentals",
+      "topic": "Core building blocks of Angular",
+      "question": "What are the major building blocks of an Angular application?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "components",
+        "templates",
+        "directives",
+        "pipes",
+        "dependency-injection",
+        "router",
+        "services"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Angular applications combine components, templates, services, routing and reactivity."
+        },
+        "motivation": {
+          "whyIntroduced": "As web UIs evolve, mixing every interaction, API call and rendering rule in one file becomes difficult to test. Angular establishes composable UI and dependency boundaries.",
+          "historicalNote": "Building blocks include framework-level elements such as directives and pipes and application features like routing and reactive forms. Some are optional depending on the application."
+        },
+        "problemSolved": {
+          "before": "A monolithic script both renders the page, handles clicks and makes requests, coupling unrelated responsibilities.",
+          "after": "Components own views, services encapsulate shared behavior, injectors provide dependencies, and the router selects feature screens.",
+          "benefits": [
+            "Separation of responsibilities",
+            "Composable UI tree",
+            "Reusable behavior and transformation"
+          ]
+        },
+        "characteristics": [
+          "Components contain a template, selector and class behavior",
+          "Templates bind values and events; directives change template behavior",
+          "Pipes format display values without modifying source data",
+          "Services and injectors share logic with defined lifetimes",
+          "Router, forms, HttpClient and Signals support navigation, input, networking and reactivity"
+        ],
+        "simpleAnalogy": {
+          "title": "Departments in a well-run library",
+          "explanation": "A library has a public desk, catalog, checkout desk, and supporting staff. Each has a specific responsibility, but they cooperate to serve the visitor. Components handle presentation while services provide reusable operations."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A shopping portal displays product lists, prices, cart state and checkout screens.",
+          "implementation": "Use ProductCard and CartSummary components, CurrencyPipe for prices, a CartService for shared cart behavior, and the router for catalog/checkout screens.",
+          "businessImpact": "A new feature can reuse product views or cart logic without duplicating their implementations.",
+          "importantConstraint": "Display totals are not authoritative order prices; the backend must calculate final price, taxes, discounts and inventory."
+        },
+        "useCases": [
+          "Compose reusable product cards",
+          "Centralize shared cart behavior in a service",
+          "Format prices and dates with pipes",
+          "Navigate between catalog and checkout",
+          "Track reactive totals with computed Signals"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Root component renders catalog screen",
+            "Catalog component receives a list of typed products",
+            "Template iterates product cards with stable tracking keys",
+            "Product card emits Add click to its parent",
+            "Cart service updates state and derived total",
+            "Template displays the new total; checkout verifies price server-side"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-012-flow",
+              "type": "flowchart",
+              "title": "End-to-end technical and domain flow",
+              "mermaid": "flowchart TD\n A[Angular root] --> B[Catalog component]\n B --> C[Product card components]\n C -->|Add event| B\n B --> D[Cart service]\n D --> E[Cart Signal state]\n E --> F[Computed cart total]\n F --> G[Cart summary component]\n G --> H[Backend checkout validation]",
+              "caption": "This diagram separates Angular rendering and browser behavior from services and backend authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "src/app/cart.service.ts + src/app/cart-summary.component.ts",
+          "runtime": "Angular 20+ standalone application; Angular CLI + strict TypeScript + browser runtime. Files shown with // FILE: markers.",
+          "code": "// FILE: src/app/cart.service.ts\nimport { Injectable, computed, signal } from '@angular/core';\n\nexport interface CartItem { id: string; priceMinor: number; quantity: number; }\n\n@Injectable({ providedIn: 'root' })\nexport class CartService {\n  private readonly itemsState = signal<CartItem[]>([]);\n  readonly items = this.itemsState.asReadonly();\n  readonly totalMinor = computed(() =>\n    this.items().reduce((sum, x) => sum + x.priceMinor * x.quantity, 0)\n  );\n  add(item: CartItem): void {\n    this.itemsState.update(current => [...current, item]);\n  }\n}\n\n// FILE: src/app/cart-summary.component.ts\nimport { Component, inject } from '@angular/core';\nimport { CartService } from './cart.service';\n\n@Component({\n  standalone: true,\n  selector: 'app-cart-summary',\n  template: `<p>Preview cart total (minor units): {{ cart.totalMinor() }}</p>`\n})\nexport class CartSummaryComponent {\n  readonly cart = inject(CartService);\n}\n",
+          "explanation": [
+            "CartService is injectable and owns a writable private Signal",
+            "The component reads a derived, read-only computed total",
+            "Dependency injection supplies the same root-scoped service to consumers",
+            "Cart total is a local preview, not the authoritative checkout amount",
+            "A full production cart would merge existing items by ID and verify product availability"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In an e-commerce learning app, I would separate product components from a cart service and derive preview totals without duplicating calculations in each component.",
+          "evidenceToCollect": [
+            "Screenshot of catalog and cart summary",
+            "Component unit test for a cart total change",
+            "Written explanation of why checkout reprices on the server"
+          ],
+          "doNotClaim": "Use conditional language until implemented and tested; do not claim production delivery without evidence."
+        },
+        "pitfalls": [
+          "A root-level mutable service can accidentally retain unrelated user sessions if not reset on logout",
+          "Pipes should not perform costly side effects",
+          "Directives and components are not interchangeable",
+          "A frontend computed cart total can be stale or manipulated"
+        ],
+        "whenNotToUse": [
+          "Do not put all business logic directly in templates",
+          "Do not make every component a globally shared service",
+          "Do not treat a UI price calculation as proof of what a customer owes"
+        ],
+        "alternatives": [
+          {
+            "name": "Component-local Signals",
+            "bestFor": "State used by only one component subtree",
+            "tradeoff": "Not automatically shared across unrelated routes"
+          },
+          {
+            "name": "NgRx or other state library",
+            "bestFor": "Large cross-feature event-driven state with tooling needs",
+            "tradeoff": "Extra concepts and boilerplate for simple applications"
+          }
+        ],
+        "testing": {
+          "strategy": "Write focused service and component tests; check that a derived value updates without direct mutation.",
+          "testCases": [
+            {
+              "case": "Empty cart",
+              "expected": "Total is zero"
+            },
+            {
+              "case": "Two items",
+              "expected": "Total equals sum of each minor-unit price times quantity"
+            },
+            {
+              "case": "Rendered summary",
+              "expected": "Component reflects total after cart.add()"
+            }
+          ],
+          "negativeCases": [
+            "Negative quantity and invalid prices should be rejected by domain validation",
+            "Never use browser total as backend checkout authority"
+          ],
+          "verificationCommand": "ng test; ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What does a template do?"
+          ],
+          "intermediate": [
+            "How does Angular DI share a service?"
+          ],
+          "advanced": [
+            "When should cart state be server-backed rather than local?"
+          ],
+          "expert": [
+            "How do you prevent stale checkout prices across distributed systems?"
+          ]
+        },
+        "finalTakeaway": "Give every building block one clear responsibility and boundary."
+      },
+      "learningOutcomes": [
+        "Identify the main building blocks",
+        "Trace component event to state to view",
+        "Explain why checkout must validate the price"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components",
+          "https://angular.dev/guide/di",
+          "https://angular.dev/guide/templates"
+        ],
+        "verificationScope": "Checked against Angular official docs; full Angular compilation requires a generated project with packages installed."
+      }
+    },
+    {
+      "id": "ANG-BEG-013",
+      "sequence": 13,
+      "difficulty": "beginner",
+      "domain": "Angular Fundamentals",
+      "topic": "Angular components and @Component metadata",
+      "question": "What is an Angular component, and what does the @Component decorator do?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "component",
+        "decorator",
+        "metadata",
+        "selector",
+        "template",
+        "styles"
+      ],
+      "answer": {
+        "definition": {
+          "text": "An Angular component binds a class to rendered markup."
+        },
+        "motivation": {
+          "whyIntroduced": "Reusable screens need localized behavior and a declarative description of their rendered view. Angular component metadata allows the compiler to connect selectors, templates, styles and dependencies to a class.",
+          "historicalNote": "The @Component decorator marks the class as a component and carries configuration metadata used by Angular compilation and runtime behavior. The class itself is ordinary TypeScript."
+        },
+        "problemSolved": {
+          "before": "Developers hand-write DOM manipulation and have no explicit reusable unit describing the view and its behavior.",
+          "after": "A decorated class defines a reusable, independently testable element with a template, selector and optional imports and styles.",
+          "benefits": [
+            "Declarative view composition",
+            "Encapsulated component behavior",
+            "Compiler-visible metadata"
+          ]
+        },
+        "characteristics": [
+          "A selector identifies where the component host is instantiated",
+          "A template expresses UI with bindings and events",
+          "The TypeScript class exposes state and event handlers",
+          "The metadata imports array lists template dependencies for standalone components",
+          "Styles can be component-scoped using Angular view encapsulation"
+        ],
+        "simpleAnalogy": {
+          "title": "A recipe card for a reusable dish",
+          "explanation": "The class is the cook who performs actions; the template is the plated presentation; the decorator describes the dish, where to serve it and the tools it needs."
+        },
+        "industryExample": {
+          "industry": "healthcare",
+          "scenario": "An appointment portal displays each booked appointment and offers a cancel action.",
+          "implementation": "Create an AppointmentCard component with an input appointment model, a template and an output cancellation event.",
+          "businessImpact": "The same appointment card can be reused in a patient view and clinician worklist without duplicating the presentation.",
+          "importantConstraint": "The cancel event only signals user intent; the backend must authorize and confirm the appointment cancellation."
+        },
+        "useCases": [
+          "Account balance cards",
+          "Product cards",
+          "Patient appointment summaries",
+          "Shipment timeline entries",
+          "Permission-aware administration actions"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Parent receives authorized appointment list",
+            "Parent renders one appointment card per item",
+            "Angular supplies appointment input to child",
+            "Child template displays status and button",
+            "Click emits appointment ID to parent",
+            "Parent sends authorized cancellation request and refreshes state"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-013-flow",
+              "type": "flowchart",
+              "title": "End-to-end technical and domain flow",
+              "mermaid": "flowchart TD\n A[Parent appointment page] --> B[AppointmentCard host]\n B --> C[Component input appointment]\n C --> D[Template renders information]\n D --> E[Cancel button click]\n E --> F[Component emits cancellation event]\n F --> G[Parent handles request]\n G --> H[Backend validates and cancels]",
+              "caption": "This diagram separates Angular rendering and browser behavior from services and backend authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "src/app/appointment-card.component.ts + src/app/appointment-page.component.ts",
+          "runtime": "Angular 20+ standalone application; Angular CLI + strict TypeScript + browser runtime. Files shown with // FILE: markers.",
+          "code": "// FILE: src/app/appointment-card.component.ts\nimport { Component, input, output } from '@angular/core';\n\nexport interface Appointment {\n  id: string;\n  clinician: string;\n  startLabel: string;\n}\n\n@Component({\n  selector: 'app-appointment-card',\n  standalone: true,\n  template: `\n    <article>\n      <h2>{{ appointment().clinician }}</h2>\n      <p>{{ appointment().startLabel }}</p>\n      <button type=\"button\" (click)=\"cancelRequested.emit(appointment().id)\">\n        Request cancellation\n      </button>\n    </article>\n  `\n})\nexport class AppointmentCardComponent {\n  readonly appointment = input.required<Appointment>();\n  readonly cancelRequested = output<string>();\n}\n\n// FILE: src/app/appointment-page.component.ts\nimport { Component } from '@angular/core';\nimport { AppointmentCardComponent, Appointment } from './appointment-card.component';\n\n@Component({\n  selector: 'app-appointment-page',\n  standalone: true,\n  imports: [AppointmentCardComponent],\n  template: `\n    <app-appointment-card\n      [appointment]=\"item\"\n      (cancelRequested)=\"onCancel($event)\" />\n    <p role=\"status\">{{ message }}</p>\n  `\n})\nexport class AppointmentPageComponent {\n  readonly item: Appointment = { id: 'appt-7', clinician: 'Dr Rao', startLabel: 'Tomorrow 10:00' };\n  message = '';\n  onCancel(id: string): void {\n    this.message = `Cancellation requested for ${id}`;\n  }\n}\n",
+          "explanation": [
+            "The @Component metadata defines the selector and HTML template",
+            "The required signal input exposes typed appointment data",
+            "output<string>() emits an event to the parent when clicked",
+            "The parent handles intent without claiming that cancellation succeeded",
+            "In a real app the parent would call an authorized API and handle pending/errors"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "For a healthcare appointment learning feature, I would reuse a typed appointment card and emit cancellation requests rather than having the child perform direct database changes.",
+          "evidenceToCollect": [
+            "Screenshot demonstrating the parent/child UI",
+            "Component test asserting output event payload",
+            "API test proving unauthorized cancellation is rejected"
+          ],
+          "doNotClaim": "Use conditional language until implemented and tested; do not claim production delivery without evidence."
+        },
+        "pitfalls": [
+          "Required input must be provided or template checking fails",
+          "Output events are not global event buses",
+          "Selectors must be valid and imported components declared in parent imports",
+          "Component styling encapsulation is not a security boundary",
+          "Avoid displaying sensitive details in logs or unprotected UI"
+        ],
+        "whenNotToUse": [
+          "Do not turn every tiny markup span into a separate component without reuse or responsibility",
+          "Do not call APIs directly in the template",
+          "Do not treat a component event as confirmed server-side success"
+        ],
+        "alternatives": [
+          {
+            "name": "Attribute directive",
+            "bestFor": "Reusing behavior on existing elements without owning a template",
+            "tradeoff": "Does not define a full view like a component"
+          },
+          {
+            "name": "Pure TypeScript utility",
+            "bestFor": "Logic unrelated to rendered UI",
+            "tradeoff": "Cannot directly express Angular template or host behavior"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed to render the component and assert binding and the emitted cancellation ID.",
+          "testCases": [
+            {
+              "case": "Input binding",
+              "expected": "Clinician and start label are visible"
+            },
+            {
+              "case": "Cancel click",
+              "expected": "cancelRequested emits appt-7 exactly once"
+            },
+            {
+              "case": "Parent response",
+              "expected": "Status text reports that cancellation was requested, not completed"
+            }
+          ],
+          "negativeCases": [
+            "A missing required input should produce a template type-check failure",
+            "Direct backend cancellation from the component without permission checks is forbidden"
+          ],
+          "verificationCommand": "ng test; ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What are selector and template?"
+          ],
+          "intermediate": [
+            "How do signal inputs differ from decorator inputs?"
+          ],
+          "advanced": [
+            "How do component encapsulation and content projection interact?"
+          ],
+          "expert": [
+            "How would you structure accessible, reusable healthcare components across a design system?"
+          ]
+        },
+        "finalTakeaway": "Components own UI behavior; decorators tell Angular how to render."
+      },
+      "learningOutcomes": [
+        "Identify @Component metadata responsibilities",
+        "Build a reusable typed child component",
+        "Separate emitted intent from confirmed backend state"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components",
+          "https://angular.dev/guide/components/inputs",
+          "https://angular.dev/guide/components/outputs"
+        ],
+        "verificationScope": "Checked against Angular official docs; full Angular compilation requires a generated project with packages installed."
+      }
+    },
+    {
+      "id": "ANG-BEG-014",
+      "sequence": 14,
+      "difficulty": "beginner",
+      "domain": "Angular Fundamentals",
+      "topic": "Standalone components versus NgModules",
+      "question": "What is the difference between standalone components and NgModules?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "standalone",
+        "ngmodule",
+        "imports",
+        "providers",
+        "migration",
+        "lazy-loading"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Standalone components declare dependencies without requiring NgModule declarations."
+        },
+        "motivation": {
+          "whyIntroduced": "Earlier Angular applications organized declarables using NgModule declarations and imports. Standalone APIs reduce indirection and let components express template dependencies directly.",
+          "historicalNote": "Standalone components became available in Angular 14 and are the modern default. Components in older applications can still use standalone: false and belong to an NgModule; these styles can interoperate during migration."
+        },
+        "problemSolved": {
+          "before": "A component must be declared in an NgModule to participate in that module system and its template dependencies are scoped through module imports.",
+          "after": "A standalone component can import its own template dependencies directly and can be bootstrapped or lazy loaded through modern application APIs.",
+          "benefits": [
+            "More explicit local dependencies",
+            "Simpler incremental adoption",
+            "Easier standalone lazy loading"
+          ]
+        },
+        "characteristics": [
+          "Standalone components import their template dependencies in @Component metadata",
+          "NgModule-declared components require a module declaration",
+          "Providers can be configured at root, route or component scope in either architecture",
+          "Modern Angular defaults to standalone; older versions before 19 did not",
+          "Migration can be incremental and coexist with legacy modules"
+        ],
+        "simpleAnalogy": {
+          "title": "Each room has its own equipment list",
+          "explanation": "NgModules resemble departments that maintain centralized equipment lists. Standalone components carry their own approved tool list, making dependencies visible where they are used. Shared services still need explicit scope management."
+        },
+        "industryExample": {
+          "industry": "saas",
+          "scenario": "An enterprise SaaS app is migrating an old administrator module to individually lazy-loaded features.",
+          "implementation": "Keep the legacy NgModule working while new feature screens use standalone components with local imports and route-level providers.",
+          "businessImpact": "Teams can migrate route by route and reduce accidental shared-module coupling.",
+          "importantConstraint": "Converting to standalone does not by itself reduce bundle size, enforce tenancy or guarantee performance; verify actual builds and route isolation."
+        },
+        "useCases": [
+          "Creating new Angular features",
+          "Route-level lazy loading",
+          "Incrementally migrating old NgModule applications",
+          "Standalone reusable UI components",
+          "Scoping providers by feature"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "User navigates to workspace settings",
+            "Router loads standalone settings component",
+            "Component imports its local directives and child components",
+            "Router resolves providers scoped to settings route",
+            "Component requests tenant-aware service",
+            "Backend independently validates tenant access"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-014-flow",
+              "type": "flowchart",
+              "title": "End-to-end technical and domain flow",
+              "mermaid": "flowchart TD\n A[Workspace route] --> B[loadComponent import]\n B --> C[Standalone settings component]\n C --> D[Local component imports]\n C --> E[Route provider scope]\n E --> F[Tenant-aware API service]\n F --> G[Backend authorization]\n H[Legacy NgModule feature] -.coexists with.-> A",
+              "caption": "This diagram separates Angular rendering and browser behavior from services and backend authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "src/app/workspace-settings.component.ts + src/app/app.routes.ts + src/main.ts",
+          "runtime": "Angular 20+ standalone application; Angular CLI + strict TypeScript + browser runtime. Files shown with // FILE: markers.",
+          "code": "// FILE: src/app/workspace-settings.component.ts\nimport { Component } from '@angular/core';\nimport { CommonModule } from '@angular/common';\n\n@Component({\n  selector: 'app-workspace-settings',\n  standalone: true,\n  imports: [CommonModule],\n  template: `<h1>Workspace settings</h1><p>Manage your organization.</p>`\n})\nexport class WorkspaceSettingsComponent {}\n\n// FILE: src/app/app.routes.ts\nimport { Routes } from '@angular/router';\n\nexport const routes: Routes = [\n  {\n    path: 'settings',\n    loadComponent: () => import('./workspace-settings.component')\n      .then(m => m.WorkspaceSettingsComponent)\n  },\n  { path: '', pathMatch: 'full', redirectTo: 'settings' }\n];\n\n// FILE: src/main.ts\nimport { bootstrapApplication } from '@angular/platform-browser';\nimport { provideRouter, RouterOutlet } from '@angular/router';\nimport { Component } from '@angular/core';\nimport { routes } from './app/app.routes';\n\n@Component({\n  selector: 'app-root', standalone: true, imports: [RouterOutlet],\n  template: `<router-outlet />`\n})\nclass RootComponent {}\n\nbootstrapApplication(RootComponent, { providers: [provideRouter(routes)] })\n  .catch(console.error);\n",
+          "explanation": [
+            "Standalone components explicitly list template dependencies",
+            "loadComponent uses a dynamic import for route-level lazy loading",
+            "provideRouter configures the router during application bootstrap",
+            "Older NgModule-declared features can still be routed and imported using appropriate interop",
+            "CommonModule is imported here to show explicit template imports, though this simple template does not require it"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "For a SaaS application migrating feature by feature, I would add new standalone routes while retaining existing NgModule screens until tests confirm parity.",
+          "evidenceToCollect": [
+            "Route configuration diff showing lazy loading",
+            "Network trace showing a route chunk loads on navigation",
+            "Regression tests for old and newly migrated routes"
+          ],
+          "doNotClaim": "Use conditional language until implemented and tested; do not claim production delivery without evidence."
+        },
+        "pitfalls": [
+          "Standalone does not mean every service is unique to each component",
+          "A component with standalone:false cannot be directly imported as a standalone component",
+          "Legacy Angular versions may default to standalone:false",
+          "Unnecessary broad CommonModule imports are not required for built-in @if/@for control flow",
+          "Improper provider scope may duplicate services unexpectedly"
+        ],
+        "whenNotToUse": [
+          "Do not rewrite a stable large NgModule application solely to chase syntax trends without a migration justification",
+          "Do not equate standalone compilation with an authorization or tenancy boundary",
+          "Do not import NgModule-declared components directly into standalone imports; import their declaring module"
+        ],
+        "alternatives": [
+          {
+            "name": "NgModule-declared component",
+            "bestFor": "Maintaining established legacy modules during incremental migration",
+            "tradeoff": "Extra declaration/import indirection"
+          },
+          {
+            "name": "Standalone component",
+            "bestFor": "New features and explicit local template dependencies",
+            "tradeoff": "Requires consistent imports and scope conventions"
+          }
+        ],
+        "testing": {
+          "strategy": "Compile a routed standalone project and test lazy route navigation and compatibility with a retained NgModule screen.",
+          "testCases": [
+            {
+              "case": "Direct navigation",
+              "expected": "/settings renders Workspace settings on reload"
+            },
+            {
+              "case": "Lazy loading",
+              "expected": "Settings route component is imported when route is activated"
+            },
+            {
+              "case": "Root bootstrap",
+              "expected": "Application starts without AppModule"
+            }
+          ],
+          "negativeCases": [
+            "A missing RouterOutlet import prevents the outlet from being recognized in a standalone template",
+            "A missing template dependency fails template compilation"
+          ],
+          "verificationCommand": "ng build; ng test; ng serve"
+        },
+        "followUps": {
+          "beginner": [
+            "What does standalone:true mean?"
+          ],
+          "intermediate": [
+            "How do standalone and NgModule-declared components interoperate?"
+          ],
+          "advanced": [
+            "How do route-scoped providers affect dependency lifetime?"
+          ],
+          "expert": [
+            "How would you migrate a large Angular monorepo incrementally with rollback and quality gates?"
+          ]
+        },
+        "finalTakeaway": "Use standalone for new work; migrate existing modules deliberately."
+      },
+      "learningOutcomes": [
+        "Differentiate standalone and module-declared components",
+        "Write lazy-loaded standalone route configuration",
+        "Explain coexistence during enterprise migrations"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components/importing",
+          "https://angular.dev/reference/migrations/standalone",
+          "https://angular.dev/guide/routing"
+        ],
+        "verificationScope": "Checked against Angular official docs; full Angular compilation requires a generated project with packages installed."
+      }
+    },
+    {
+      "id": "ANG-BEG-015",
+      "sequence": 15,
+      "difficulty": "beginner",
+      "domain": "Angular Fundamentals",
+      "topic": "Create an Angular application with routed features",
+      "question": "How would you create a standalone Angular application with a navigation header, dashboard and account-details component?",
+      "questionType": "coding",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "bootstrap",
+        "router",
+        "navigation",
+        "standalone",
+        "application-shell",
+        "query-parameters"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Bootstrap a standalone shell, then configure reusable routed views."
+        },
+        "motivation": {
+          "whyIntroduced": "A multi-screen portal needs one persistent navigation shell but independently addressable pages. Routing decouples browser URLs from component instantiation and allows direct links and lazy loading.",
+          "historicalNote": "Angular CLI generates application scaffolding; bootstrapApplication and provideRouter configure a standalone root. The RouterOutlet renders whichever route matches the current URL."
+        },
+        "problemSolved": {
+          "before": "An app switches views using manual DOM mutations or deeply nested conditional flags, breaking deep links, browser history and clear screen ownership.",
+          "after": "A persistent shell displays navigation while RouterOutlet selects the dashboard or account details by route.",
+          "benefits": [
+            "Addressable pages with browser navigation",
+            "Reusable persistent shell",
+            "Feature-specific components"
+          ]
+        },
+        "characteristics": [
+          "bootstrapApplication starts a standalone root component",
+          "provideRouter registers declarative routes and guards when needed",
+          "RouterLink creates navigation without page reload",
+          "RouterOutlet hosts the selected route component",
+          "Route parameters identify a selected account; backend must authorize the ID"
+        ],
+        "simpleAnalogy": {
+          "title": "Building with hallways and rooms",
+          "explanation": "The navigation header is the hallway shared by everyone. A route is the room number; the router opens the selected room without reconstructing the entire building."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A fictional banking portal has an overview and a shareable URL for each account details page.",
+          "implementation": "Use a root navigation header, dashboard component and account-details route /accounts/:accountId; read the route parameter and display fictional data.",
+          "businessImpact": "Users can open account URLs directly and keep a consistent navigation experience.",
+          "importantConstraint": "A route parameter is untrusted input: a real backend must verify ownership before returning account data. Never infer authorization from an ID in a URL."
+        },
+        "useCases": [
+          "Customer account portals",
+          "Order management screens",
+          "Shipment detail URLs",
+          "Appointment details",
+          "Tenant workspace settings"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Browser loads root index.html and compiled bundles",
+            "main.ts bootstraps AppComponent and provides router",
+            "AppComponent renders header and router outlet",
+            "Dashboard route shows overview",
+            "User follows routerLink to /accounts/demo-001",
+            "AccountDetails reads accountId from the route",
+            "Real service would query backend and server would authorize account access"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-015-flow",
+              "type": "flowchart",
+              "title": "End-to-end technical and domain flow",
+              "mermaid": "flowchart TD\n A[main.ts bootstrapApplication] --> B[AppComponent]\n B --> C[Navigation header]\n B --> D[RouterOutlet]\n C -->|Overview| E[Dashboard route]\n C -->|Account link| F[Account details route]\n D --> E\n D --> F\n F --> G[Read accountId parameter]\n G --> H[Authorized account API in real project]",
+              "caption": "This diagram separates Angular rendering and browser behavior from services and backend authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "src/app/dashboard.component.ts + src/app/account-details.component.ts + src/app/app.routes.ts + src/app/app.component.ts + src/main.ts",
+          "runtime": "Angular 20+ standalone application; Angular CLI + strict TypeScript + browser runtime. Files shown with // FILE: markers.",
+          "code": "// FILE: src/app/dashboard.component.ts\nimport { Component } from '@angular/core';\nimport { RouterLink } from '@angular/router';\n\n@Component({\n  selector: 'app-dashboard', standalone: true, imports: [RouterLink],\n  template: `\n    <h1>Dashboard</h1>\n    <p>Welcome to the fictional banking portal.</p>\n    <a routerLink=\"/accounts/demo-001\">View demo account</a>\n  `\n})\nexport class DashboardComponent {}\n\n// FILE: src/app/account-details.component.ts\nimport { Component, inject } from '@angular/core';\nimport { ActivatedRoute } from '@angular/router';\n\n@Component({\n  selector: 'app-account-details', standalone: true,\n  template: `\n    <h1>Account details</h1>\n    <p>Account ID: {{ accountId }}</p>\n    <p>Demo only — no real balances or account data.</p>\n  `\n})\nexport class AccountDetailsComponent {\n  private readonly route = inject(ActivatedRoute);\n  readonly accountId = this.route.snapshot.paramMap.get('accountId');\n}\n\n// FILE: src/app/app.routes.ts\nimport { Routes } from '@angular/router';\n\nexport const routes: Routes = [\n  { path: '', pathMatch: 'full', loadComponent: () => import('./dashboard.component').then(m => m.DashboardComponent) },\n  { path: 'accounts/:accountId', loadComponent: () => import('./account-details.component').then(m => m.AccountDetailsComponent) },\n  { path: '**', redirectTo: '' }\n];\n\n// FILE: src/app/app.component.ts\nimport { Component } from '@angular/core';\nimport { RouterLink, RouterOutlet } from '@angular/router';\n\n@Component({\n  selector: 'app-root', standalone: true,\n  imports: [RouterLink, RouterOutlet],\n  template: `\n    <header><nav aria-label=\"Primary navigation\">\n      <a routerLink=\"/\">Overview</a>\n    </nav></header>\n    <main><router-outlet /></main>\n  `\n})\nexport class AppComponent {}\n\n// FILE: src/main.ts\nimport { bootstrapApplication } from '@angular/platform-browser';\nimport { provideRouter } from '@angular/router';\nimport { AppComponent } from './app/app.component';\nimport { routes } from './app/app.routes';\n\nbootstrapApplication(AppComponent, { providers: [provideRouter(routes)] })\n  .catch(console.error);\n",
+          "explanation": [
+            "Root component stays mounted while RouterOutlet changes the active view",
+            "Both feature screens are standalone and loaded through dynamic imports",
+            "RouterLink performs internal navigation and supports browser history",
+            "The route snapshot works for this navigation example; if the same component instance remains active while parameters change, subscribe to paramMap or convert it to a Signal",
+            "There is deliberately no real bank account lookup or authentication in this beginner demo"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "For a banking portfolio project, I would implement this shell first, then wire account details to a backend endpoint and enforce authorization before displaying customer records.",
+          "evidenceToCollect": [
+            "Repository showing four files plus main.ts",
+            "Browser screenshot of the dashboard and account detail URLs",
+            "E2E test proving direct route refresh works",
+            "Follow-up API test showing forbidden account ID returns 403"
+          ],
+          "doNotClaim": "Use conditional language until implemented and tested; do not claim production delivery without evidence."
+        },
+        "pitfalls": [
+          "A snapshot parameter does not track later param changes in the same component instance",
+          "Router guards can be bypassed or disabled on the client",
+          "Unknown URLs need a deliberate fallback or not-found page",
+          "Screen content should include meaningful landmarks and headings",
+          "Lazy routes still require sensible chunk size and error handling"
+        ],
+        "whenNotToUse": [
+          "Do not fetch sensitive account data based solely on an unverified route ID",
+          "Do not hardcode credentials or secrets into frontend files",
+          "Do not choose a route snapshot if parameters must update without component recreation"
+        ],
+        "alternatives": [
+          {
+            "name": "Eager route component",
+            "bestFor": "Tiny critical routes that do not need a lazy chunk",
+            "tradeoff": "Adds code to the initial bundle"
+          },
+          {
+            "name": "Manual component conditional rendering",
+            "bestFor": "Small UI mode switches inside one route",
+            "tradeoff": "Does not provide URL-based navigation or history"
+          }
+        ],
+        "testing": {
+          "strategy": "Generate a standalone Angular project, paste the files, compile, and run browser navigation and accessibility checks.",
+          "testCases": [
+            {
+              "case": "Dashboard route",
+              "expected": "/ renders heading Dashboard and navigation link"
+            },
+            {
+              "case": "Account route",
+              "expected": "/accounts/demo-001 renders correct account ID"
+            },
+            {
+              "case": "Direct deep-link reload",
+              "expected": "Server fallback supports reloading /accounts/demo-001 and Angular shows the details component"
+            },
+            {
+              "case": "Unknown route",
+              "expected": "Unknown route redirects to dashboard"
+            }
+          ],
+          "negativeCases": [
+            "A production account endpoint must return 403 or 404 when the requester lacks authorization",
+            "If web server is not configured with SPA fallback, deep links may return a server-side 404"
+          ],
+          "verificationCommand": "npx ng new angular-mastery-demo --standalone --routing --style=css; cd angular-mastery-demo; npm run build; npm run start"
+        },
+        "followUps": {
+          "beginner": [
+            "What is RouterOutlet?"
+          ],
+          "intermediate": [
+            "How do you consume route parameter changes reactively?"
+          ],
+          "advanced": [
+            "How would you implement preload and error recovery for lazy routes?"
+          ],
+          "expert": [
+            "How would you design tenant-aware routing and authorization for a multi-region banking platform?"
+          ]
+        },
+        "finalTakeaway": "Use a persistent shell, route components, and backend authorization."
+      },
+      "learningOutcomes": [
+        "Bootstrap an Angular standalone application",
+        "Configure routes and browser navigation",
+        "Explain why backend account authorization is mandatory"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/api/platform-browser/bootstrapApplication",
+          "https://angular.dev/guide/routing",
+          "https://angular.dev/guide/components"
+        ],
+        "verificationScope": "Checked against Angular official docs; full Angular compilation requires a generated project with packages installed."
+      }
+    }
+  ]
+}

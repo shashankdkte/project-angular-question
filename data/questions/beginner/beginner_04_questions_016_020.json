@@ -1,0 +1,1062 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-04",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 16,
+      "end": 20
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-016",
+      "sequence": 16,
+      "difficulty": "beginner",
+      "domain": "Components, Lifecycle and Communication",
+      "topic": "Component lifecycle hooks",
+      "question": "What are Angular lifecycle hooks? Explain ngOnInit, ngOnChanges, ngAfterViewInit and ngOnDestroy.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "component-lifecycle",
+        "ngonchanges",
+        "ngoninit",
+        "ngafterviewinit",
+        "ngondestroy",
+        "cleanup"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Lifecycle hooks run code at defined component lifetime stages."
+        },
+        "motivation": {
+          "whyIntroduced": "Angular creates components, supplies inputs, checks templates, renders views and eventually tears instances down. The framework offers hooks so component code can react to those distinct stages instead of guessing when inputs, queries or cleanup opportunities are available.",
+          "historicalNote": "The commonly taught class lifecycle includes ngOnChanges, ngOnInit, ngAfterViewInit and ngOnDestroy. Modern Angular also provides render callbacks such as afterNextRender and DestroyRef for cleanup. ngOnChanges can also observe signal inputs."
+        },
+        "problemSolved": {
+          "before": "Code in a constructor may read inputs too early, and intervals or subscriptions can outlive destroyed views.",
+          "after": "Choose hooks based on timing: ngOnChanges reacts to bound input changes, ngOnInit runs once after initialization, ngAfterViewInit runs once after view initialization, and ngOnDestroy handles teardown.",
+          "benefits": [
+            "Initialization is separated from construction",
+            "Input changes can trigger a documented callback",
+            "View query readiness has a defined boundary",
+            "Teardown can release resources"
+          ]
+        },
+        "characteristics": [
+          "ngOnChanges runs for bound input changes, including the initial assignment; initial invocation precedes ngOnInit",
+          "ngOnInit runs once after component inputs receive their initial values",
+          "ngAfterViewInit runs once after the component view is initialized; changing checked state there can cause an error",
+          "ngOnDestroy runs once before the component instance is destroyed",
+          "DestroyRef and takeUntilDestroyed offer composable cleanup; afterNextRender is better for some browser DOM work"
+        ],
+        "simpleAnalogy": {
+          "title": "Theater performance schedule",
+          "explanation": "The theater has setup, rehearsal, curtain-up and teardown stages. A technician cannot inspect the finished stage before setup, and lights must be switched off after the show; hooks provide analogous timing boundaries."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A shipment detail view receives a shipment ID, renders a tracking timeline and optionally starts a status refresh while visible.",
+          "implementation": "Accept the shipment ID as an input; react to a changed ID; initialize view data; query view-only UI after it exists; stop a timer during teardown. Prefer declarative streams and lifecycle-safe cleanup over manual timers for production.",
+          "businessImpact": "Correct shipment is displayed after navigation and stale polling does not continue after leaving the page.",
+          "importantConstraint": "Client teardown does not cancel server-side business processing. Keep subscription lifetimes explicit; SSR environments may not have browser DOM APIs."
+        },
+        "useCases": [
+          "Initialize a form from resolved inputs",
+          "Respond to a parent changing an input",
+          "Access a view query once the view has initialized",
+          "Stop a repeating client-side task on destruction",
+          "Integrate third-party visualization with browser rendering lifecycle"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Parent creates shipment detail component",
+            "Angular binds shipmentId from parent",
+            "ngOnChanges receives initial shipmentId change",
+            "ngOnInit runs once after initial inputs are initialized",
+            "Angular creates and initializes the component view",
+            "ngAfterViewInit can inspect the view child",
+            "Parent changes shipmentId and ngOnChanges runs again",
+            "Navigation destroys the component; ngOnDestroy clears its timer"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-016-flow",
+              "type": "sequence",
+              "title": "Component lifecycle hooks: lifecycle and industry flow",
+              "mermaid": "sequenceDiagram\n    participant P as Parent\n    participant A as Angular\n    participant C as ShipmentDetail\n    participant T as Timer\n    P->>A: Bind shipmentId\n    A->>C: ngOnChanges initial ID\n    A->>C: ngOnInit once\n    A->>C: ngAfterViewInit once\n    C->>T: Start optional refresh timer\n    P->>A: Change shipmentId\n    A->>C: ngOnChanges updated ID\n    A->>C: ngOnDestroy on navigation\n    C->>T: Clear interval",
+              "caption": "The diagram simplifies template checking; actual hooks run as part of Angular change detection and view lifecycle."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shipment-detail.component.ts",
+          "runtime": "Angular 20+ compatible standalone component; place in an Angular CLI project; no external HTML required",
+          "code": "// FILE: shipment-detail.component.ts\nimport {\n  Component, ElementRef, Input, OnChanges, OnInit,\n  AfterViewInit, OnDestroy, SimpleChanges, ViewChild, signal\n} from '@angular/core';\n\n@Component({\n  selector: 'app-shipment-detail',\n  standalone: true,\n  template: `<h2 #heading>Shipment {{ shipmentId }}</h2>\n             <p>Refresh attempts: {{ refreshCount() }}</p>`\n})\nexport class ShipmentDetailComponent\n  implements OnChanges, OnInit, AfterViewInit, OnDestroy {\n  @Input({ required: true }) shipmentId = '';\n  @ViewChild('heading') heading?: ElementRef<HTMLHeadingElement>;\n  readonly refreshCount = signal(0);\n  private timer?: ReturnType<typeof setInterval>;\n\n  ngOnChanges(changes: SimpleChanges): void {\n    if (changes['shipmentId']) {\n      console.log('Shipment changed:', this.shipmentId);\n      // A real feature would update a data stream keyed by ID.\n    }\n  }\n  ngOnInit(): void {\n    this.timer = setInterval(() => this.refreshCount.update(n => n + 1), 30_000);\n  }\n  ngAfterViewInit(): void {\n    console.log('Heading element:', this.heading?.nativeElement.tagName);\n  }\n  ngOnDestroy(): void {\n    if (this.timer) clearInterval(this.timer);\n  }\n}\n",
+          "explanation": [
+            "Decorator-based @Input is used deliberately to make ngOnChanges timing visible",
+            "Initial ngOnChanges runs before ngOnInit; ngAfterViewInit runs after the view initializes",
+            "The interval updates a Signal so even zoneless change detection observes the UI change; a real app should use deliberate polling/data strategies",
+            "ngOnDestroy removes the interval to avoid work continuing after navigation",
+            "Direct DOM access should be limited and guarded for non-browser rendering"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In the logistics learning portal, I would build shipment detail screens whose refresh work stops when the route changes, then show a test that demonstrates correct teardown.",
+          "evidenceToCollect": [
+            "Test fixture records of hook execution order",
+            "Browser navigation recording that the timer stops",
+            "Code review demonstrating resource cleanup"
+          ],
+          "doNotClaim": "This is a proposed training-project implementation; do not claim that it was deployed or delivered to real customers."
+        },
+        "pitfalls": [
+          "ngAfterViewInit is not a general-purpose place to mutate bound state; it may cause ExpressionChangedAfterItHasBeenCheckedError",
+          "ngOnChanges reacts to input bindings, not arbitrary mutations of fields elsewhere",
+          "ngOnDestroy is skipped if the entire browser process is abruptly killed; server cleanup is separate",
+          "Manual subscriptions and intervals left running after destroy cause leaks",
+          "Assuming browser DOM availability during SSR breaks server rendering"
+        ],
+        "whenNotToUse": [
+          "Do not use ngOnInit to detect every later input change",
+          "Do not introduce lifecycle hooks when computed signals/template bindings express the behavior more simply",
+          "Do not manipulate elements in the constructor or use ngAfterViewInit for unguarded server-side DOM access"
+        ],
+        "alternatives": [
+          {
+            "name": "computed() on signal inputs",
+            "bestFor": "Deriving a value from a changing input without side effects",
+            "tradeoff": "Not a replacement for teardown or imperative integration"
+          },
+          {
+            "name": "DestroyRef/onDestroy",
+            "bestFor": "Co-locating resource cleanup with resource creation",
+            "tradeoff": "Still requires understanding resource scope"
+          },
+          {
+            "name": "afterNextRender",
+            "bestFor": "Performing browser DOM work after Angular renders",
+            "tradeoff": "Does not run in SSR and must be called in an injection context"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed and component fixtures for isolated behavior; combine with browser checks for UI interactions.",
+          "testCases": [
+            {
+              "case": "Initial hook ordering",
+              "expected": "ngOnChanges initial record occurs before ngOnInit and ngAfterViewInit"
+            },
+            {
+              "case": "Input update",
+              "expected": "ngOnChanges receives a new value but ngOnInit does not rerun"
+            },
+            {
+              "case": "Destroy",
+              "expected": "Interval is cleared when fixture.destroy() is called"
+            }
+          ],
+          "negativeCases": [
+            "Mutating state synchronously inside ngAfterViewInit may trigger expression-changed errors",
+            "A missing @Input binding with required input should produce a template compile error",
+            "Destroy and recreate should not leave multiple timers alive"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What does ngOnDestroy clean up?"
+          ],
+          "intermediate": [
+            "How does takeUntilDestroyed differ from manually subscribing?"
+          ],
+          "advanced": [
+            "How would SSR change render-time DOM integration?"
+          ],
+          "expert": [
+            "How would you instrument lifecycle-related resource leaks across hundreds of routed screens?"
+          ]
+        },
+        "finalTakeaway": "Choose hooks by lifecycle timing, but prefer declarative state and automatic cleanup when possible."
+      },
+      "learningOutcomes": [
+        "Explain initialization, change, view and destruction phases",
+        "Predict first and later ngOnChanges behavior",
+        "Show a lifecycle-safe resource cleanup pattern"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components/lifecycle",
+          "https://angular.dev/guide/components/inputs",
+          "https://angular.dev/guide/components/outputs",
+          "https://angular.dev/guide/components/queries",
+          "https://angular.dev/guide/components/overview"
+        ],
+        "verificationScope": "Cross-checked API patterns with official Angular guidance. TypeScript syntax/transpilation checks performed locally; full Angular compiler/browser suite not available in this runtime."
+      }
+    },
+    {
+      "id": "ANG-BEG-017",
+      "sequence": 17,
+      "difficulty": "beginner",
+      "domain": "Components, Lifecycle and Communication",
+      "topic": "Constructor versus ngOnInit",
+      "question": "What is the difference between the constructor and ngOnInit()?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "constructor",
+        "ngoninit",
+        "inputs",
+        "initialization",
+        "lifecycle"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Constructors initialize instances; ngOnInit runs after input initialization."
+        },
+        "motivation": {
+          "whyIntroduced": "TypeScript constructors are part of class creation; Angular-specific startup must occur after Angular has assigned inputs. Separating these steps avoids reading unavailable input values while constructing an instance.",
+          "historicalNote": "The class constructor is JavaScript/TypeScript syntax, not an Angular lifecycle hook. ngOnInit is called by Angular once after inputs have their initial values. Modern field initializers may use inject() within injection context."
+        },
+        "problemSolved": {
+          "before": "An API call started in the constructor may use a default empty ID because the parent has not yet bound the actual account ID.",
+          "after": "Use the constructor for minimal instance setup; initialize work that depends on an initial input during ngOnInit or use input-based reactive derivation.",
+          "benefits": [
+            "Avoids requesting the wrong account",
+            "Makes initialization phases explicit",
+            "Simplifies isolated unit tests"
+          ]
+        },
+        "characteristics": [
+          "Constructor executes whenever a component class instance is constructed",
+          "Angular calls ngOnInit once per component instance",
+          "Initial input values are available to ngOnInit, but are not guaranteed in the constructor",
+          "Neither constructor nor ngOnInit waits for asynchronous HTTP requests",
+          "A changing input does not automatically rerun ngOnInit"
+        ],
+        "simpleAnalogy": {
+          "title": "Restaurant seating and first order",
+          "explanation": "Building a table sets up chairs and menus (constructor). Only after diners arrive can the waiter read their order (initial input / ngOnInit)."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A parent account page passes a current account ID into a transaction summary.",
+          "implementation": "Declare @Input accountId with a required binding. Initialize an account-specific label in ngOnInit rather than the constructor; if account IDs can change later, react via ngOnChanges or signal-based computed state.",
+          "businessImpact": "The first transaction summary references the account chosen by the parent, not a temporary default.",
+          "importantConstraint": "Fetching confidential account data requires backend account authorization regardless of which hook initiates the request."
+        },
+        "useCases": [
+          "Reading a required initial input",
+          "Setting up a component-specific initial view model",
+          "Initializing a form once from initial input data",
+          "Explaining dependency injection availability during class construction",
+          "Preventing early access to view children"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular constructs an AccountSummary instance",
+            "Constructor executes with default field values",
+            "Angular assigns bound accountId",
+            "Angular calls ngOnChanges for the initial bound value when implemented",
+            "Angular calls ngOnInit",
+            "Component displays the correct initialized label"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-017-flow",
+              "type": "sequence",
+              "title": "Constructor versus ngOnInit: lifecycle and industry flow",
+              "mermaid": "sequenceDiagram\n    participant P as Parent\n    participant A as Angular\n    participant C as AccountSummary\n    A->>C: new AccountSummary()\n    C-->>A: constructor completes\n    P->>A: Bind accountId = ACC-42\n    A->>C: Assign bound input\n    A->>C: ngOnChanges (if implemented)\n    A->>C: ngOnInit once\n    C-->>P: Render account summary",
+              "caption": "Angular input assignment occurs after construction and before ngOnInit; the sequence represents the initial lifecycle only."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "account-summary.component.ts",
+          "runtime": "Angular 20+ compatible standalone component; place in an Angular CLI project",
+          "code": "// FILE: account-summary.component.ts\nimport { Component, Input, OnInit } from '@angular/core';\n\n@Component({\n  selector: 'app-account-summary',\n  standalone: true,\n  template: `<p>{{ label }}</p>`\n})\nexport class AccountSummaryComponent implements OnInit {\n  @Input({ required: true }) accountId = '';\n  label = '';\n\n  constructor() {\n    // Angular has not assigned accountId from the parent yet.\n    console.log('Constructor accountId:', this.accountId);\n  }\n\n  ngOnInit(): void {\n    this.label = `Summary for ${this.accountId}`;\n  }\n}\n\n// Parent template: <app-account-summary [accountId]=\"selectedId\" />\n",
+          "explanation": [
+            "The constructor runs during ordinary class instantiation",
+            "@Input is assigned by Angular after construction",
+            "ngOnInit uses the initial parent-provided accountId",
+            "The label will not recompute on later input changes; handle those separately",
+            "For a purely derived label in modern Angular, signal input() + computed() is often better"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "For a banking training app, I would use initial input values to set up an account detail view and use computed signals if the selected account can change while the component remains mounted.",
+          "evidenceToCollect": [
+            "Screenshot showing correct account ID after initial binding",
+            "Test proving ngOnInit executes once",
+            "Regression test for changing IDs, followed by a computed-input improvement"
+          ],
+          "doNotClaim": "This is a proposed training-project implementation; do not claim that it was deployed or delivered to real customers."
+        },
+        "pitfalls": [
+          "Expecting a bound @Input value to be available in the constructor",
+          "Putting work into ngOnInit and assuming it runs on every parameter update",
+          "Starting asynchronous work without error/cancellation handling",
+          "Performing expensive operations in the constructor slows component creation",
+          "Treating input-based initialization as authorization"
+        ],
+        "whenNotToUse": [
+          "Do not fetch input-dependent data using an uninitialized constructor input",
+          "Do not put unconditional network calls in constructors merely because the constructor runs first",
+          "Do not use ngOnInit for a derived value that must update whenever its source input changes"
+        ],
+        "alternatives": [
+          {
+            "name": "input() + computed()",
+            "bestFor": "Pure values derived from parent inputs across updates",
+            "tradeoff": "Requires signal-oriented code style"
+          },
+          {
+            "name": "ngOnChanges",
+            "bestFor": "Imperative reactions to later input changes",
+            "tradeoff": "More lifecycle bookkeeping"
+          },
+          {
+            "name": "RxJS switchMap",
+            "bestFor": "Cancel stale API requests when input IDs change",
+            "tradeoff": "Requires an observable input source and deliberate error handling"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed and component fixtures for isolated behavior; combine with browser checks for UI interactions.",
+          "testCases": [
+            {
+              "case": "Initial input",
+              "expected": "Rendered label matches the bound accountId"
+            },
+            {
+              "case": "Constructor phase",
+              "expected": "Constructor log shows default value rather than assuming the parent value"
+            },
+            {
+              "case": "Later account change",
+              "expected": "Demonstrate that ngOnInit does not rerun; a reactive alternative updates if implemented"
+            }
+          ],
+          "negativeCases": [
+            "Without a required accountId binding, modern Angular template compilation should reject the usage",
+            "Reusing an existing instance with a different bound accountId leaves the sample label unchanged"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "When is an @Input value assigned?"
+          ],
+          "intermediate": [
+            "How do you handle a required input changing after init?"
+          ],
+          "advanced": [
+            "How would you cancel an account request when route inputs change quickly?"
+          ],
+          "expert": [
+            "When would a signal-derived view model be preferable to hook-driven mutable state?"
+          ]
+        },
+        "finalTakeaway": "Constructors create objects; input-aware setup belongs after Angular supplies initial inputs."
+      },
+      "learningOutcomes": [
+        "Distinguish class construction from Angular lifecycle",
+        "Predict input availability for both phases",
+        "Identify cases where reactive derivation is better than ngOnInit"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components/lifecycle",
+          "https://angular.dev/guide/components/inputs",
+          "https://angular.dev/guide/components/outputs",
+          "https://angular.dev/guide/components/queries",
+          "https://angular.dev/guide/components/overview"
+        ],
+        "verificationScope": "Cross-checked API patterns with official Angular guidance. TypeScript syntax/transpilation checks performed locally; full Angular compiler/browser suite not available in this runtime."
+      }
+    },
+    {
+      "id": "ANG-BEG-018",
+      "sequence": 18,
+      "difficulty": "beginner",
+      "domain": "Components, Lifecycle and Communication",
+      "topic": "Parent-child communication",
+      "question": "How does parent-to-child and child-to-parent component communication work?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "input",
+        "output",
+        "component-communication",
+        "signals",
+        "ecommerce"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Inputs send data downward; outputs communicate events upward."
+        },
+        "motivation": {
+          "whyIntroduced": "Component trees need a predictable, explicit way to exchange values without children reaching directly into parent internals. Angular inputs declare inbound data contracts; outputs declare notifications that the parent handles.",
+          "historicalNote": "Modern Angular prefers signal-based input() for many new components and output() for custom events. Existing apps also use @Input(), @Output() and EventEmitter. Output events do not automatically bubble through DOM ancestors."
+        },
+        "problemSolved": {
+          "before": "A child reaching into a parent singleton or mutating a shared object can accidentally change unrelated screens and obscure who owns state.",
+          "after": "A parent binds data into a child input; the child emits an event describing user intent; the parent decides how to update its state.",
+          "benefits": [
+            "Explicit contracts between parent and child",
+            "Reusable presentation components",
+            "Predictable state ownership"
+          ]
+        },
+        "characteristics": [
+          "Inputs define a public inbound API",
+          "Outputs define an event API",
+          "The parent normally owns state passed down",
+          "Typed values improve template checking",
+          "Events are notifications, not backend authorization"
+        ],
+        "simpleAnalogy": {
+          "title": "TV remote and television",
+          "explanation": "A television receives a selected channel (input). The remote sends a change request (event) and the owning controller decides the next channel; the remote does not rewrite the television hardware."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A product-list page shows product cards and handles Add to cart clicks.",
+          "implementation": "Pass a typed Product into each product-card input and emit productId when Add to cart is clicked. The parent updates cart state and may later call a backend API.",
+          "businessImpact": "Product cards remain reusable across catalog and recommendations, while cart mutations are coordinated in one place.",
+          "importantConstraint": "A frontend Add to cart event is not a confirmed order; price, stock and permissions must be revalidated on the backend at checkout."
+        },
+        "useCases": [
+          "Reusable product-card buttons",
+          "Filter components notifying a results page",
+          "Modal confirmation events",
+          "Editable row controls that send save requests upward",
+          "Wizard steps receiving form state from a parent"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Parent owns a Product and cart array",
+            "Parent binds Product into product-card input",
+            "Child renders title and price",
+            "User activates Add to cart",
+            "Child emits product ID via output()",
+            "Parent handles event and updates cart state",
+            "Angular updates displayed cart count"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-018-flow",
+              "type": "sequence",
+              "title": "Parent-child communication: lifecycle and industry flow",
+              "mermaid": "sequenceDiagram\n    actor U as Shopper\n    participant P as CatalogPage\n    participant C as ProductCard\n    U->>P: Open catalog\n    P->>C: [product] = selected product\n    C-->>U: Render product details\n    U->>C: Click Add to cart\n    C->>P: addToCart.emit(productId)\n    P->>P: Update cart signal\n    P-->>U: Show updated cart count",
+              "caption": "Output emits a component event handled by its immediate binding consumer; Angular custom outputs do not bubble like DOM click events."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "product-card.component.ts + catalog-page.component.ts",
+          "runtime": "Angular 20+ standalone components; input()/output() stable modern Angular APIs",
+          "code": "// FILE: product-card.component.ts\nimport { Component, input, output } from '@angular/core';\n\nexport interface Product {\n  id: string;\n  name: string;\n  priceMinor: number;\n}\n\n@Component({\n  selector: 'app-product-card',\n  standalone: true,\n  template: `\n    <article>\n      <h2>{{ product().name }}</h2>\n      <p>Price in cents: {{ product().priceMinor }}</p>\n      <button type=\"button\" (click)=\"addToCart.emit(product().id)\">\n        Add to cart\n      </button>\n    </article>`\n})\nexport class ProductCardComponent {\n  readonly product = input.required<Product>();\n  readonly addToCart = output<string>();\n}\n\n// FILE: catalog-page.component.ts\nimport { Component, signal } from '@angular/core';\nimport { Product, ProductCardComponent } from './product-card.component';\n\n@Component({\n  selector: 'app-catalog-page',\n  standalone: true,\n  imports: [ProductCardComponent],\n  template: `\n    <app-product-card [product]=\"product\"\n      (addToCart)=\"onAdd($event)\" />\n    <p>Cart items: {{ cartIds().length }}</p>`\n})\nexport class CatalogPageComponent {\n  readonly product: Product = { id: 'SKU-1', name: 'Notebook', priceMinor: 499 };\n  readonly cartIds = signal<string[]>([]);\n  onAdd(id: string): void {\n    this.cartIds.update(ids => [...ids, id]);\n  }\n}\n",
+          "explanation": [
+            "input.required<Product>() expresses the required inbound product contract",
+            "output<string>() emits an ID, not a mutable shared product object",
+            "The parent owns the cartIds signal and updates it when the child emits",
+            "Signals update the cart count in the template",
+            "This represents client-side cart intent; persisted cart operations need APIs and business rules"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In the e-commerce learning project I would keep product-card components presentation-focused and make the catalog page or a dedicated cart feature responsible for mutations.",
+          "evidenceToCollect": [
+            "Component test proving the product name renders",
+            "Component test proving button emits the correct product ID",
+            "Parent test showing exactly one item is added per click"
+          ],
+          "doNotClaim": "This is a proposed training-project implementation; do not claim that it was deployed or delivered to real customers."
+        },
+        "pitfalls": [
+          "Mutating an input object in the child can bypass clear ownership boundaries",
+          "Outputs do not bubble automatically through arbitrary ancestor components",
+          "Naming an output click or another native DOM event can be confusing",
+          "Events can be emitted more than once if buttons are not disabled during processing",
+          "Passing large shared mutable objects makes change tracking and tests less predictable"
+        ],
+        "whenNotToUse": [
+          "Do not use outputs for unrelated components separated by many layers when a service or state store fits better",
+          "Do not treat child events as proof that an order succeeded",
+          "Do not require a child to know its parent component class just to communicate"
+        ],
+        "alternatives": [
+          {
+            "name": "Shared feature service",
+            "bestFor": "Multiple sibling or distant components that share state",
+            "tradeoff": "Requires carefully scoped ownership and teardown"
+          },
+          {
+            "name": "model() input",
+            "bestFor": "Reusable controls with explicit two-way binding contracts",
+            "tradeoff": "May obscure ownership if used for every field"
+          },
+          {
+            "name": "Router or URL state",
+            "bestFor": "State that should survive navigation or be shareable",
+            "tradeoff": "Not suited to ephemeral button events"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed and component fixtures for isolated behavior; combine with browser checks for UI interactions.",
+          "testCases": [
+            {
+              "case": "Child rendering",
+              "expected": "Product name appears from bound parent input"
+            },
+            {
+              "case": "Child to parent",
+              "expected": "Click emits SKU-1 and parent cart count becomes one"
+            },
+            {
+              "case": "Repeated click",
+              "expected": "Cart count follows expected business logic for duplicates"
+            }
+          ],
+          "negativeCases": [
+            "Omitting required product input should cause a template compilation diagnostic",
+            "A handler that adds twice per click reveals duplicate subscriptions or bindings",
+            "Changing a product input should update the card without rebuilding the entire page"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What is an Angular output?"
+          ],
+          "intermediate": [
+            "How would sibling components communicate?"
+          ],
+          "advanced": [
+            "How do Signals affect input change detection and event handling?"
+          ],
+          "expert": [
+            "How would you design shared cart state across lazy-loaded modules without duplicate updates?"
+          ]
+        },
+        "finalTakeaway": "Data flows down through inputs; user intent flows up through typed outputs."
+      },
+      "learningOutcomes": [
+        "Build a typed input/output contract",
+        "Explain state ownership",
+        "Distinguish UI intent events from successful backend actions"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components/lifecycle",
+          "https://angular.dev/guide/components/inputs",
+          "https://angular.dev/guide/components/outputs",
+          "https://angular.dev/guide/components/queries",
+          "https://angular.dev/guide/components/overview"
+        ],
+        "verificationScope": "Cross-checked API patterns with official Angular guidance. TypeScript syntax/transpilation checks performed locally; full Angular compiler/browser suite not available in this runtime."
+      }
+    },
+    {
+      "id": "ANG-BEG-019",
+      "sequence": 19,
+      "difficulty": "beginner",
+      "domain": "Components, Lifecycle and Communication",
+      "topic": "Inputs and outputs versus shared services",
+      "question": "What are the differences between input/output bindings and sharing data through a service?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "inputs",
+        "outputs",
+        "services",
+        "dependency-injection",
+        "signals",
+        "saas"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Inputs and outputs connect relatives; services coordinate shared state."
+        },
+        "motivation": {
+          "whyIntroduced": "Passing inputs across several intermediate components creates prop drilling, while unrelated components may need the same authenticated session or filter state. A service offers a shared, injectable owner where direct communication is awkward.",
+          "historicalNote": "Angular has long supported hierarchical DI and component bindings. Modern Signals make small scoped state services straightforward, but the service provider scope determines whether state is shared or duplicated."
+        },
+        "problemSolved": {
+          "before": "A header, sidebar and account screen each manage a separate selected-account value and drift out of sync.",
+          "after": "Use input/output for local parent-child contracts; use a correctly scoped state service for cross-tree shared state, while keeping server state and authorization boundaries explicit.",
+          "benefits": [
+            "Avoids excessive prop drilling",
+            "Clearer shared state ownership",
+            "Consistent cross-feature UI"
+          ]
+        },
+        "characteristics": [
+          "Inputs/outputs keep ownership visible for immediate relatives",
+          "Services are injected via hierarchical providers",
+          "A root provider can share state across an application",
+          "Component-level providers create isolated service instances",
+          "Signals can expose readonly state and explicit mutation methods"
+        ],
+        "simpleAnalogy": {
+          "title": "Passing notes versus shared notice board",
+          "explanation": "Two people sitting together can pass a note directly. Several teams in different rooms may need a shared notice board managed by an owner; everyone sees the same announcement."
+        },
+        "industryExample": {
+          "industry": "saas",
+          "scenario": "An enterprise workspace selector appears in a global header while the project list and permissions summary appear in separate feature areas.",
+          "implementation": "A WorkspaceContextService stores the active workspace identifier as a private signal and exposes a readonly value. Header changes it; workspace-filtered screens read it and reload their authorized data.",
+          "businessImpact": "Cross-feature navigation stays consistent when the user changes workspaces.",
+          "importantConstraint": "The browser service is not an isolation boundary. Backend APIs must validate workspace membership on every request and clear/cache-key workspace-specific data appropriately."
+        },
+        "useCases": [
+          "Authentication session summary in header and settings",
+          "Active tenant or workspace context",
+          "Cross-feature notification state",
+          "Shared shopping-cart badge across routes",
+          "Synchronized feature-level filters"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular root injector creates one WorkspaceContextService instance for the application root",
+            "Header injects service and calls selectWorkspace",
+            "Private writable signal receives new workspace ID",
+            "Other consumers read readonly currentWorkspace signal",
+            "UI updates to show chosen workspace",
+            "Data clients refetch or invalidate cache using the new workspace context",
+            "Backend checks the user belongs to that workspace"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-019-flow",
+              "type": "flowchart",
+              "title": "Inputs and outputs versus shared services: lifecycle and industry flow",
+              "mermaid": "flowchart TD\n  A[Workspace Header] -->|selectWorkspace| B[WorkspaceContextService]\n  B --> C[Private activeWorkspace signal]\n  C --> D[Readonly workspace view]\n  D --> E[Project List]\n  D --> F[Permissions Summary]\n  E --> G[Workspace aware API]\n  F --> G\n  G --> H[Backend authorization]",
+              "caption": "The service shares browser-side selection only; backend verification remains mandatory and API fetching is intentionally not implemented in this short example."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "workspace-context.service.ts + workspace-header.component.ts + workspace-status.component.ts",
+          "runtime": "Angular 20+ standalone components and Signals",
+          "code": "// FILE: workspace-context.service.ts\nimport { Injectable, signal } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class WorkspaceContextService {\n  private readonly selectedId = signal<string | null>(null);\n  readonly activeWorkspaceId = this.selectedId.asReadonly();\n\n  selectWorkspace(id: string): void {\n    this.selectedId.set(id);\n  }\n}\n\n// FILE: workspace-header.component.ts\nimport { Component, inject } from '@angular/core';\nimport { WorkspaceContextService } from './workspace-context.service';\n\n@Component({\n  selector: 'app-workspace-header',\n  standalone: true,\n  template: `<button type=\"button\" (click)=\"choose()\">Choose Demo</button>`\n})\nexport class WorkspaceHeaderComponent {\n  private readonly context = inject(WorkspaceContextService);\n  choose(): void { this.context.selectWorkspace('demo-workspace'); }\n}\n\n// FILE: workspace-status.component.ts\nimport { Component, inject } from '@angular/core';\nimport { WorkspaceContextService } from './workspace-context.service';\n\n@Component({\n  selector: 'app-workspace-status',\n  standalone: true,\n  template: `<p>Workspace: {{ context.activeWorkspaceId() ?? 'none' }}</p>`\n})\nexport class WorkspaceStatusComponent {\n  readonly context = inject(WorkspaceContextService);\n}\n",
+          "explanation": [
+            "Root-provided service shares one instance in the application environment injector",
+            "The writable signal stays private; consumers receive a readonly signal",
+            "Header performs an explicit state transition rather than mutating the value",
+            "A separate status component observes changes automatically",
+            "Root singleton does not persist across browser reloads, tabs, or server render requests"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a SaaS training portal I would use parent-child bindings for isolated user-row actions and a workspace context service for the active workspace across feature routes.",
+          "evidenceToCollect": [
+            "Test demonstrating header and status share one root service instance",
+            "Test proving a component-scoped override produces isolated state",
+            "Security test showing unauthorized workspace APIs are rejected"
+          ],
+          "doNotClaim": "This is a proposed training-project implementation; do not claim that it was deployed or delivered to real customers."
+        },
+        "pitfalls": [
+          "Providing the same state service on multiple feature components can create unexpected separate instances",
+          "Global root services can retain stale sensitive information across sign-out",
+          "Readonly signal prevents direct writes but does not provide deep immutable object protection",
+          "Shared services can grow into unmaintainable god-objects",
+          "Browser state is not shared across tabs or persisted without an explicit strategy"
+        ],
+        "whenNotToUse": [
+          "Do not introduce a root singleton for an isolated one-child interaction",
+          "Do not rely on a client service to enforce tenant boundaries",
+          "Do not make one service responsible for unrelated features merely to avoid passing inputs"
+        ],
+        "alternatives": [
+          {
+            "name": "input/output",
+            "bestFor": "Direct parent-child data and intent exchange",
+            "tradeoff": "Can require forwarding across many levels"
+          },
+          {
+            "name": "Component-scoped service",
+            "bestFor": "State shared only within one feature subtree",
+            "tradeoff": "Consumers outside the subtree cannot see that instance"
+          },
+          {
+            "name": "URL query and route parameters",
+            "bestFor": "Shareable or bookmarkable selected filters",
+            "tradeoff": "Requires serialization and navigation semantics"
+          },
+          {
+            "name": "Central state library",
+            "bestFor": "Complex cross-feature state with devtools and standardized effects",
+            "tradeoff": "Adds setup and design overhead"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed and component fixtures for isolated behavior; combine with browser checks for UI interactions.",
+          "testCases": [
+            {
+              "case": "Cross-component sharing",
+              "expected": "Click header button and verify status shows demo-workspace"
+            },
+            {
+              "case": "Provider scope",
+              "expected": "Override provider at a test host and verify another subtree remains independent"
+            },
+            {
+              "case": "Session reset",
+              "expected": "Clearing workspace on sign-out removes stale UI context"
+            }
+          ],
+          "negativeCases": [
+            "A child provider shadows root service unexpectedly",
+            "Opening another tab does not automatically update state",
+            "Reading a stale workspace during an in-flight API response requires cancellation or guarded rendering"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "When is input/output enough?"
+          ],
+          "intermediate": [
+            "How does provider hierarchy affect service instance scope?"
+          ],
+          "advanced": [
+            "How would you prevent cross-tenant cache leakage after workspace switching?"
+          ],
+          "expert": [
+            "How should a multi-tenant front end coordinate state across SSR, browser tabs and server-side authorization?"
+          ]
+        },
+        "finalTakeaway": "Use direct bindings for local contracts and scoped services for genuinely shared state."
+      },
+      "learningOutcomes": [
+        "Choose a communication approach based on component relationship",
+        "Explain provider scope and instance duplication",
+        "Name the server-side safeguards for tenant-aware state"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components/lifecycle",
+          "https://angular.dev/guide/components/inputs",
+          "https://angular.dev/guide/components/outputs",
+          "https://angular.dev/guide/components/queries",
+          "https://angular.dev/guide/components/overview"
+        ],
+        "verificationScope": "Cross-checked API patterns with official Angular guidance. TypeScript syntax/transpilation checks performed locally; full Angular compiler/browser suite not available in this runtime."
+      }
+    },
+    {
+      "id": "ANG-BEG-020",
+      "sequence": 20,
+      "difficulty": "beginner",
+      "domain": "Components, Lifecycle and Communication",
+      "topic": "Typed account-card input/output exercise",
+      "question": "Build a parent component that passes account data to a child and receives a button-click event from that child.",
+      "questionType": "coding",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "coding",
+        "input-required",
+        "output",
+        "account-card",
+        "banking",
+        "component-communication"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Parent supplies typed account data; child emits selection events."
+        },
+        "motivation": {
+          "whyIntroduced": "A realistic UI must reuse account presentation while keeping navigation decisions and permissions outside the card. Inputs express the card data contract; output events let the containing screen react to selection without coupling the card to routing.",
+          "historicalNote": "The recommended modern implementation uses input.required<T>() and output<T>(). @Input and @Output remain relevant for reading existing Angular applications. output() events are not DOM-bubbling events."
+        },
+        "problemSolved": {
+          "before": "A duplicated account card hardcodes navigation and reads a global service directly; the same card becomes difficult to reuse for search results and overview screens.",
+          "after": "A typed child accepts readonly account information and emits a selected ID; its parent owns the selection state and determines the next UI action.",
+          "benefits": [
+            "Account card is reusable",
+            "Parent owns navigation and selection",
+            "Typed contracts support template checking"
+          ]
+        },
+        "characteristics": [
+          "Required input provides a typed component contract",
+          "Output emits a meaningful event payload",
+          "Parent owns the selected account state",
+          "Child exposes no backend authorization logic",
+          "Accessible button supports keyboard activation"
+        ],
+        "simpleAnalogy": {
+          "title": "Library book card",
+          "explanation": "A library shelf gives each book card its title and ID. When someone selects a card, it reports the book ID to the library desk, which decides what to open next."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A banking dashboard shows two fictional accounts and lets the customer select one for a detail panel.",
+          "implementation": "Create an AccountCard component with input.required<AccountSummary>() and output<string>(). The dashboard renders cards using @for with stable account IDs and updates its own selectedId signal on output.",
+          "businessImpact": "One reusable card handles multiple account types and a parent owns selection decisions; switching accounts updates the panel predictably.",
+          "importantConstraint": "The example uses illustrative minor-unit balances only. Never authorize account access or financial transfers based on a client-supplied ID alone."
+        },
+        "useCases": [
+          "Dashboard account cards",
+          "Selectable patient records in administrative lists",
+          "Product selection from search results",
+          "Shipment list to detail navigation",
+          "Workspace overview cards"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Dashboard owns an array of typed account summaries",
+            "@for renders AccountCard for each summary using account ID as tracking key",
+            "Angular binds each account to the child input",
+            "User activates View details",
+            "Child emits selected account ID",
+            "Dashboard handles selected event and updates signal",
+            "Selected-account label updates; a real detail API would verify permission"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-020-flow",
+              "type": "sequence",
+              "title": "Typed account-card input/output exercise: lifecycle and industry flow",
+              "mermaid": "sequenceDiagram\n    actor U as Customer\n    participant P as AccountsDashboard\n    participant C as AccountCard\n    participant A as Backend API\n    P->>C: Bind typed AccountSummary input\n    C-->>U: Display masked account details\n    U->>C: Activate View details\n    C->>P: selected.emit(account.id)\n    P->>P: selectedId.set(id)\n    P-->>U: Update selection display\n    Note over P,A: In a real app, detail fetch must authorize account access",
+              "caption": "This training flow shows Angular-only state communication; the backend API is shown as a required real-world boundary, not invoked by this code."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "account-card.component.ts + accounts-dashboard.component.ts",
+          "runtime": "Angular 20+ standalone components with modern input(), output() and @for syntax",
+          "code": "// FILE: account-card.component.ts\nimport { Component, input, output } from '@angular/core';\n\nexport interface AccountSummary {\n  id: string;\n  label: string;\n  maskedNumber: string;\n  balanceMinor: number;\n  currency: 'INR' | 'USD';\n}\n\n@Component({\n  selector: 'app-account-card',\n  standalone: true,\n  template: `\n    <article>\n      <h3>{{ account().label }}</h3>\n      <p>Account: {{ account().maskedNumber }}</p>\n      <p>Balance (minor units): {{ account().balanceMinor }}</p>\n      <button type=\"button\" (click)=\"selected.emit(account().id)\">\n        View details\n      </button>\n    </article>`\n})\nexport class AccountCardComponent {\n  readonly account = input.required<AccountSummary>();\n  readonly selected = output<string>();\n}\n\n// FILE: accounts-dashboard.component.ts\nimport { Component, signal } from '@angular/core';\nimport { AccountCardComponent, AccountSummary } from './account-card.component';\n\n@Component({\n  selector: 'app-accounts-dashboard',\n  standalone: true,\n  imports: [AccountCardComponent],\n  template: `\n    <h2>My accounts</h2>\n    @for (account of accounts; track account.id) {\n      <app-account-card\n        [account]=\"account\"\n        (selected)=\"selectAccount($event)\" />\n    }\n    <p>Selected account: {{ selectedId() ?? 'none' }}</p>`\n})\nexport class AccountsDashboardComponent {\n  readonly accounts: AccountSummary[] = [\n    { id: 'a-1', label: 'Savings', maskedNumber: '•••• 1234', balanceMinor: 154250, currency: 'INR' },\n    { id: 'a-2', label: 'Current', maskedNumber: '•••• 9876', balanceMinor: 48200, currency: 'INR' }\n  ];\n  readonly selectedId = signal<string | null>(null);\n\n  selectAccount(id: string): void {\n    this.selectedId.set(id);\n  }\n}\n",
+          "explanation": [
+            "The reusable card accepts one required strongly typed account input",
+            "The card output sends the ID without changing parent data",
+            "The parent uses @for and track account.id for stable list identity",
+            "The selection state belongs to the parent as a Signal",
+            "Amounts are intentionally presented as minor units; real formatting needs a currency exponent and locale-aware display"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a simulated banking portal I would implement this component pair and use tests to prove that selecting a card updates only the parent selection state, then add an authorized account-detail API in a later milestone.",
+          "evidenceToCollect": [
+            "Passing component test for input rendering",
+            "Passing test for selected event payload",
+            "Parent integration test showing selected account updates",
+            "Screenshot of two cards with masked account numbers"
+          ],
+          "doNotClaim": "This is a proposed training-project implementation; do not claim that it was deployed or delivered to real customers."
+        },
+        "pitfalls": [
+          "Using the array index as tracking identity can cause wrong reused state when items reorder",
+          "A card that mutates account.balanceMinor violates explicit ownership",
+          "An output event may be emitted more than once by repeated clicks; enforce idempotency in real workflows",
+          "Displaying real account numbers or raw sensitive IDs can expose private data",
+          "Using a floating-point number as a source of truth for money is unsafe"
+        ],
+        "whenNotToUse": [
+          "Do not call the payments backend directly from a generic display card",
+          "Do not put tenant or account authorization in the child component",
+          "Do not store secret account data in browser code or checked-in JSON",
+          "Do not use a two-way model binding merely to report a button click"
+        ],
+        "alternatives": [
+          {
+            "name": "RouterLink",
+            "bestFor": "Direct navigation where a detail URL is the desired contract",
+            "tradeoff": "Child becomes navigation-aware and may be less reusable"
+          },
+          {
+            "name": "model() two-way value",
+            "bestFor": "Controlled form-like inputs whose value the child edits",
+            "tradeoff": "Too much coupling for a one-way selection event"
+          },
+          {
+            "name": "Shared service",
+            "bestFor": "Selection needed by unrelated screens",
+            "tradeoff": "Adds scope and consistency concerns absent in a simple parent-child pattern"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed and component fixtures for isolated behavior; combine with browser checks for UI interactions.",
+          "testCases": [
+            {
+              "case": "Child displays input",
+              "expected": "Render Savings and masked number •••• 1234"
+            },
+            {
+              "case": "Child output",
+              "expected": "Click first card, expect selected emits a-1"
+            },
+            {
+              "case": "Parent integration",
+              "expected": "Select second card, expect Selected account: a-2"
+            },
+            {
+              "case": "Type enforcement",
+              "expected": "Omit required account input in a consuming template and expect compilation to fail"
+            }
+          ],
+          "negativeCases": [
+            "Selecting with mouse and keyboard should produce the same event",
+            "Reordering account data should preserve logical selection by ID",
+            "A malicious ID must be rejected by the backend when accessing protected account details"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What is the direction of an input binding?"
+          ],
+          "intermediate": [
+            "When would you move selected account state into a service?"
+          ],
+          "advanced": [
+            "How would you cancel an in-flight detail request when the user selects another account?"
+          ],
+          "expert": [
+            "How would you design tenant-aware account selection with secure routing and server authorization?"
+          ]
+        },
+        "finalTakeaway": "Keep account data inputs typed and let the parent own navigation and selection."
+      },
+      "learningOutcomes": [
+        "Implement a parent-child pair with modern Angular APIs",
+        "Verify click emissions using tests",
+        "Recognize backend authorization and money-formatting boundaries"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/components/lifecycle",
+          "https://angular.dev/guide/components/inputs",
+          "https://angular.dev/guide/components/outputs",
+          "https://angular.dev/guide/components/queries",
+          "https://angular.dev/guide/components/overview"
+        ],
+        "verificationScope": "Cross-checked API patterns with official Angular guidance. TypeScript syntax/transpilation checks performed locally; full Angular compiler/browser suite not available in this runtime."
+      }
+    }
+  ]
+}

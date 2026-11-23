@@ -1,0 +1,1036 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-06",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 26,
+      "end": 30
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-026",
+      "sequence": 26,
+      "difficulty": "beginner",
+      "domain": "Services and Dependency Injection",
+      "topic": "Angular services and separation of concerns",
+      "question": "What is an Angular service, and why should business logic be separated from components?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "and",
+        "angular",
+        "beginner",
+        "concerns",
+        "dependency-injection",
+        "of",
+        "separation",
+        "services"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Angular services encapsulate reusable behavior outside components and templates."
+        },
+        "motivation": {
+          "whyIntroduced": "As applications grow, repeating API calls, formatting rules and workflow behavior inside UI components makes every screen harder to change. Services offer a conventional home for sharable non-presentation behavior, with Angular DI making that behavior available where needed.",
+          "historicalNote": "An Angular service is generally a TypeScript class, often marked @Injectable. The decorator participates in dependency provision; it does not make ordinary methods magically reactive. Angular encourages extracting reusable logic instead of creating enormous components."
+        },
+        "problemSolved": {
+          "before": "A transaction dashboard and detail screen each implement their own transaction filtering and API wiring; one fixes a defect while the other keeps the bug.",
+          "after": "Both components call a focused TransactionService; the service handles domain-oriented data retrieval while each component manages its own loading and display state.",
+          "benefits": [
+            "One place to correct shared behavior",
+            "Simpler component testing by replacing services",
+            "Clear separation of UI concerns from API interaction",
+            "Easier reuse across screens"
+          ]
+        },
+        "characteristics": [
+          "Services are ordinary TypeScript classes; @Injectable configures Angular DI metadata and optional provider scope.",
+          "A component should generally orchestrate presentation and user events, not duplicate HTTP and business logic.",
+          "Service state lifetime follows its provider scope; a root service can outlive the screen that uses it.",
+          "A service may depend on other injected dependencies, such as HttpClient or a logger.",
+          "Not every function merits a service; pure local transformations may remain functions."
+        ],
+        "simpleAnalogy": {
+          "title": "Library catalog desk",
+          "explanation": "A librarian keeps the catalog rules in one place. Visitors use different reading rooms, but both ask the same catalog desk rather than copying the catalog system into each room."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A fictional banking portal needs the same recent-transaction list on both an account overview and a transactions page.",
+          "implementation": "Use a TransactionService with a typed read method and keep UI-specific loading messages and selected rows inside the components. This sample uses an in-memory data source so it works without a backend.",
+          "businessImpact": "Consistent transactions appear across screens and a change to a filtering rule can be made once.",
+          "importantConstraint": "In real banking, transaction records are server-authoritative and must be returned only after account-level authorization. A client-side service is not a secure data boundary."
+        },
+        "useCases": [
+          "Shared API access for multiple Angular screens",
+          "Reusable business-oriented filtering and mapping",
+          "Authentication and session orchestration with carefully scoped state",
+          "Centralized domain adapters that translate API DTOs into view models"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular creates the component and requests TransactionService",
+            "Injector finds the root provider for TransactionService",
+            "Component calls getRecent() from the supplied instance",
+            "Service returns a typed, immutable-in-practice copy of fictional transaction data",
+            "Angular renders the returned transaction list",
+            "A second component can use the same service without recreating the method"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-026-flow",
+              "type": "sequence",
+              "title": "Angular services and separation of concerns: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    actor U as User\n    participant C as Overview Component\n    participant I as Angular Injector\n    participant S as TransactionService\n    participant D as Sample Data\n    U->>C: Open overview\n    C->>I: Request TransactionService\n    I-->>C: Provide service instance\n    C->>S: getRecent()\n    S->>D: Read in-memory transactions\n    D-->>S: Typed transaction records\n    S-->>C: Return list copy\n    C-->>U: Render recent transactions",
+              "caption": "Conceptual teaching flow; backend authorization and data integrity are separate from Angular dependency injection."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "recent-transactions.component.ts",
+          "runtime": "Angular 17+ standalone component; in-memory fictional amounts in minor units; no backend or sensitive account data.",
+          "code": "// FILE: recent-transactions.component.ts\nimport { Component, Injectable, inject } from '@angular/core';\n\ntype Transaction = Readonly<{ id: string; label: string; amountMinor: number }>;\n\n@Injectable({ providedIn: 'root' })\nexport class TransactionService {\n  private readonly sample: readonly Transaction[] = [\n    { id: 't1', label: 'Demo grocery purchase', amountMinor: -2599 },\n    { id: 't2', label: 'Demo salary credit', amountMinor: 125000 }\n  ];\n\n  getRecent(): Transaction[] {\n    return this.sample.map(transaction => ({ ...transaction }));\n  }\n}\n\n@Component({\n  selector: 'app-recent-transactions',\n  standalone: true,\n  template: `\n    <h2>Recent fictional transactions</h2>\n    <ul>\n      @for (tx of transactions; track tx.id) {\n        <li>{{ tx.label }}: {{ tx.amountMinor }} minor units</li>\n      }\n    </ul>\n  `\n})\nexport class RecentTransactionsComponent {\n  private readonly transactionService = inject(TransactionService);\n  readonly transactions = this.transactionService.getRecent();\n}\n",
+          "explanation": [
+            "The service owns reusable transaction retrieval and exposes a typed method.",
+            "The component injects the service and owns the rendering template.",
+            "The service returns copies to avoid callers mutating stored examples through returned references.",
+            "Money is represented in minor units for illustration; production handling also needs currency, scale and ledger-specific rules."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In my banking practice portal I would move repeated transaction-fetching and mapping rules into a service, then prove the overview and detail pages use the same API contract.",
+          "evidenceToCollect": [
+            "Two screens using one service under source control",
+            "A component test overriding TransactionService",
+            "A written note showing the data contract and authority of the backend"
+          ],
+          "doNotClaim": "This is a suggested practice-project narrative. Do not claim that the code was shipped, tested in production, or used by customers unless you have evidence."
+        },
+        "pitfalls": [
+          "A root-provided service that stores per-user data can retain stale information after logout unless explicitly cleared.",
+          "Services are not automatically singletons under every injector scope.",
+          "Putting template-specific booleans and DOM manipulation in services can obscure responsibilities.",
+          "A shared service does not eliminate duplicate HTTP calls unless it intentionally caches or shares requests."
+        ],
+        "whenNotToUse": [
+          "Do not create a service for a single trivial arithmetic expression with no reuse or dependencies.",
+          "Do not store bank authorization decisions only in an Angular service.",
+          "Do not make a root service a dumping ground for unrelated domain features."
+        ],
+        "alternatives": [
+          {
+            "name": "Pure TypeScript function",
+            "bestFor": "Stateless transformations, formatters and validators that need no DI",
+            "tradeoff": "Cannot automatically access injected dependencies, which is often an advantage."
+          },
+          {
+            "name": "Component-local method",
+            "bestFor": "Simple presentation behavior specific to one component",
+            "tradeoff": "Cannot be reused without extraction."
+          },
+          {
+            "name": "Route-scoped service",
+            "bestFor": "State and behavior only relevant while a feature route is active",
+            "tradeoff": "The service instance and state may be recreated when the route injector is destroyed."
+          }
+        ],
+        "testing": {
+          "strategy": "Create the sample in a current Angular CLI workspace, run a production build and Angular tests. Use TestBed to isolate DI, override providers when needed, and test rendered UI rather than treating TypeScript type checking as behavioral verification.",
+          "testCases": [
+            {
+              "case": "Component renders sample transactions",
+              "expected": "Both fictional records appear with stable identifiers."
+            },
+            {
+              "case": "Service returns copies",
+              "expected": "Changing a returned record does not mutate the original sample array."
+            },
+            {
+              "case": "Service mock provided in TestBed",
+              "expected": "Component displays records from the test double."
+            }
+          ],
+          "negativeCases": [
+            "Never treat sample data as a live banking ledger",
+            "Check that a future API implementation refuses requests without proper authorization"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What does @Injectable do?"
+          ],
+          "intermediate": [
+            "How does provider scope affect shared service state?"
+          ],
+          "advanced": [
+            "When should a service expose Signals versus Observables?"
+          ],
+          "expert": [
+            "How would you prevent user-specific root-service caches from leaking across sessions?"
+          ]
+        },
+        "finalTakeaway": "Services organize reusable behavior; components own presentation, and backends enforce trust boundaries."
+      },
+      "learningOutcomes": [
+        "Distinguish a component responsibility from a service responsibility",
+        "Explain how a service is injected and reused",
+        "Implement a small typed service without falsely claiming server-side security"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/di",
+          "https://angular.dev/guide/di/dependency-injection-providers"
+        ],
+        "verificationScope": "Angular APIs reviewed against angular.dev reference pages; source examples checked by local TypeScript transpilation only. No Angular CLI template compilation, browser execution, or Mermaid rendering claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-027",
+      "sequence": 27,
+      "difficulty": "beginner",
+      "domain": "Services and Dependency Injection",
+      "topic": "Dependency injection and providers",
+      "question": "What is dependency injection, and how does Angular provide dependencies?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "and",
+        "angular",
+        "beginner",
+        "dependency",
+        "dependency-injection",
+        "injection",
+        "providers",
+        "services"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Dependency injection supplies collaborators without callers constructing them directly."
+        },
+        "motivation": {
+          "whyIntroduced": "When every class creates its own dependencies, construction details and infrastructure choices spread throughout UI logic. Angular dependency injection resolves provided objects for consumers so implementations can be swapped, configured, scoped and mocked.",
+          "historicalNote": "DI is an inversion-of-control technique, not Angular-specific. Angular represents a request by a token, associates the token with a provider, and resolves the value through an injector hierarchy. Providers may useClass, useValue, useFactory or useExisting."
+        },
+        "problemSolved": {
+          "before": "A component directly instantiates a Logger with new Logger(), preventing tests from substituting a fake without changing the component.",
+          "after": "An Angular injector resolves an injected Logger token using its provider configuration; a TestBed provider can substitute a controlled fake for testing.",
+          "benefits": [
+            "Reduced construction coupling",
+            "Explicit dependency relationships",
+            "Configurable scopes and provider overrides",
+            "Tests can inject substitutes without changing production components"
+          ]
+        },
+        "characteristics": [
+          "A dependency is an object or value needed by another class.",
+          "A provider connects an injection token to a factory, class, value or existing token.",
+          "An injector resolves tokens, potentially delegating to parent injectors.",
+          "inject() can run only within a valid injection context, such as an injected class field initializer.",
+          "DI supplies instances, but does not itself authorize users or perform HTTP calls."
+        ],
+        "simpleAnalogy": {
+          "title": "Tool checkout desk",
+          "explanation": "Instead of every worker buying a specialized tool, workers request one from a checkout desk. The desk provides the configured tool and can supply a safe substitute during training."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A shipment dashboard and an exception panel need the same structured logger in order to record diagnostic events.",
+          "implementation": "Inject an app-level AuditLogger rather than manually constructing it. For demonstration the logger writes to the console; production shipping telemetry belongs in an appropriately secured service.",
+          "businessImpact": "Both screens use consistent logging behavior and tests can replace the logger with a recorder.",
+          "importantConstraint": "Console logs can disclose sensitive operational information; a frontend logger is not a tamper-proof audit record or a replacement for backend observability."
+        },
+        "useCases": [
+          "Swapping real API services for test doubles",
+          "Providing feature-specific configuration",
+          "Reusing an injectable logging or telemetry abstraction",
+          "Composing domain services from smaller collaborators"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Application bootstrap makes AuditLogger provider available",
+            "Angular creates ShipmentPanelComponent",
+            "Its field initializer calls inject(AuditLogger) within injection context",
+            "Injector locates the provider and supplies an instance",
+            "Component calls logger.info() from a button handler",
+            "A TestBed test overrides the provider to capture messages"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-027-flow",
+              "type": "sequence",
+              "title": "Dependency injection and providers: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    actor U as User\n    participant C as ShipmentPanelComponent\n    participant I as Angular Injector\n    participant L as AuditLogger\n    U->>C: Open shipment panel\n    C->>I: inject(AuditLogger)\n    I-->>C: Supplied logger instance\n    U->>C: Click diagnostic event\n    C->>L: info('panel-opened')\n    L-->>C: Logging completed\n    Note over I,L: Provider override can supply a fake in tests",
+              "caption": "Conceptual teaching flow; backend authorization and data integrity are separate from Angular dependency injection."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shipment-panel.component.ts",
+          "runtime": "Angular standalone component; optional Jasmine example in comment, not imported at runtime.",
+          "code": "// FILE: shipment-panel.component.ts\nimport { Component, Injectable, inject } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class AuditLogger {\n  info(event: string): void {\n    console.info('[demo]', event);\n  }\n}\n\n@Component({\n  selector: 'app-shipment-panel',\n  standalone: true,\n  template: `<button type=\"button\" (click)=\"recordOpen()\">\n    Record panel open\n  </button>`\n})\nexport class ShipmentPanelComponent {\n  private readonly logger = inject(AuditLogger);\n\n  recordOpen(): void {\n    this.logger.info('shipment-panel-opened');\n  }\n}\n\n// In a TestBed test, override the provider with:\n// { provide: AuditLogger, useValue: { info: jasmine.createSpy('info') } }\n",
+          "explanation": [
+            "@Injectable({providedIn: root}) registers a root-scoped provider for AuditLogger.",
+            "inject(AuditLogger) requests the instance during Angular-managed class initialization.",
+            "The click handler calls an existing instance; it does not call inject() in an unsupported lifecycle context.",
+            "TestBed can substitute a fake logger by the same class token."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a logistics training project I would inject a shared telemetry adapter into the shipment list and exceptions screen, and use a fake provider in component tests.",
+          "evidenceToCollect": [
+            "Test fixture showing logger spy captures event",
+            "Provider override demonstrated without editing the component",
+            "A note distinguishing browser diagnostics from secure server audit logs"
+          ],
+          "doNotClaim": "This is a suggested practice-project narrative. Do not claim that the code was shipped, tested in production, or used by customers unless you have evidence."
+        },
+        "pitfalls": [
+          "Calling inject() from an ordinary click handler outside injection context raises NG0203.",
+          "A missing provider leads to a NullInjectorError when no eligible ancestor supplies the token.",
+          "Providers registered at different levels can yield different instances.",
+          "A circular dependency chain can prevent construction; invert the collaboration or separate interfaces."
+        ],
+        "whenNotToUse": [
+          "Do not use DI simply to call Math.max or another pure operation.",
+          "Do not expect injecting a service to grant authorization or secure information.",
+          "Do not call inject() in arbitrary asynchronous callbacks after the injection context has ended."
+        ],
+        "alternatives": [
+          {
+            "name": "Manual construction",
+            "bestFor": "Small immutable objects with no injected collaborators",
+            "tradeoff": "The caller owns creation and substitution."
+          },
+          {
+            "name": "Parameter passing",
+            "bestFor": "Per-call data such as a shipment ID",
+            "tradeoff": "Not suitable for wiring an application-level service graph by itself."
+          },
+          {
+            "name": "InjectionToken provider",
+            "bestFor": "Configuration values or abstract contract bindings",
+            "tradeoff": "Requires explicit token/provider setup."
+          }
+        ],
+        "testing": {
+          "strategy": "Create the sample in a current Angular CLI workspace, run a production build and Angular tests. Use TestBed to isolate DI, override providers when needed, and test rendered UI rather than treating TypeScript type checking as behavioral verification.",
+          "testCases": [
+            {
+              "case": "Angular creates the component",
+              "expected": "AuditLogger is resolved and the component renders."
+            },
+            {
+              "case": "Click logging button",
+              "expected": "Logger receives one event with the expected name."
+            },
+            {
+              "case": "TestBed override",
+              "expected": "Fake logger receives the call; real console logger need not run."
+            }
+          ],
+          "negativeCases": [
+            "Calling inject() in setTimeout callback without runInInjectionContext should fail",
+            "Removing all providers for a requested token should produce a DI resolution error"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What is a provider?"
+          ],
+          "intermediate": [
+            "How is useFactory different from useClass?"
+          ],
+          "advanced": [
+            "How do environment and element injectors interact?"
+          ],
+          "expert": [
+            "How would you version injected platform contracts across independently deployed applications?"
+          ]
+        },
+        "finalTakeaway": "Dependency injection resolves collaborators through providers; it does not execute business workflows for you."
+      },
+      "learningOutcomes": [
+        "Describe token, provider and injector",
+        "Demonstrate inject() in a valid location",
+        "Replace a dependency in a unit test"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/di",
+          "https://angular.dev/guide/di/dependency-injection-context",
+          "https://angular.dev/guide/di/dependency-injection-providers",
+          "https://angular.dev/guide/di/hierarchical-dependency-injection"
+        ],
+        "verificationScope": "Angular APIs reviewed against angular.dev reference pages; source examples checked by local TypeScript transpilation only. No Angular CLI template compilation, browser execution, or Mermaid rendering claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-028",
+      "sequence": 28,
+      "difficulty": "beginner",
+      "domain": "Services and Dependency Injection",
+      "topic": "Root providers and service lifetime",
+      "question": "What does providedIn: 'root' mean?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "and",
+        "angular",
+        "beginner",
+        "dependency-injection",
+        "lifetime",
+        "providers",
+        "root",
+        "service",
+        "services"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Root providers make injectable services available application wide by default."
+        },
+        "motivation": {
+          "whyIntroduced": "Applications frequently need a consistent shared implementation of cross-cutting capabilities, such as account API adapters and feature configuration. Registering a service in the root injector avoids repetitive provider declarations and enables tree-shaking of unused injectable services.",
+          "historicalNote": "@Injectable({ providedIn: 'root' }) registers a provider with the application root EnvironmentInjector. It typically means one instance per root injector, not one globally across browser tabs, server requests, or unrelated Angular applications. A nearer provider can override it."
+        },
+        "problemSolved": {
+          "before": "A developer adds SessionPreferencesService to providers on each component and observes that preferences mysteriously reset whenever screens are recreated.",
+          "after": "Root provision lets screens request the same root service instance, unless the service is intentionally overridden lower in the injector hierarchy.",
+          "benefits": [
+            "Simpler dependency registration",
+            "Shared per-application service identity",
+            "Tree-shakable default providers",
+            "Predictable lifetime relative to the application root"
+          ]
+        },
+        "characteristics": [
+          "providedIn: 'root' is provider registration, not a promise of a universal process-wide singleton.",
+          "Components requesting the same token typically get the root instance when no nearer provider overrides it.",
+          "Adding a provider to a component can override the root instance for that component subtree.",
+          "Root-provided state may persist across navigation and must be explicitly reset when session/tenant context changes.",
+          "In SSR, application/request injector lifetimes require careful isolation; never assume root state is shared safely across requests."
+        ],
+        "simpleAnalogy": {
+          "title": "Shared front-desk notebook",
+          "explanation": "Everyone working in one office uses a shared front-desk notebook unless a specific team sets up its own separate notebook. A different office has its own notebook too."
+        },
+        "industryExample": {
+          "industry": "saas",
+          "scenario": "A SaaS application has a display-preference service used by a workspace header and a report screen.",
+          "implementation": "Provide DisplayPreferencesService in root so both features read the same Signal. On logout or workspace change, explicitly reset any user- or tenant-specific values, or use narrower scoping for tenant-only state.",
+          "businessImpact": "Preference changes remain consistent during ordinary navigation without passing data through many component inputs.",
+          "importantConstraint": "Never treat a root service as safe storage for sensitive tenant data; both backend isolation and lifecycle cleanup are necessary."
+        },
+        "useCases": [
+          "Global language or display preference state",
+          "Cross-feature stateless API adapters",
+          "Application-wide telemetry facade",
+          "Shared feature flags without tenant-specific leakage"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular starts one application with its root injector",
+            "A header and reports screen separately request DisplayPreferencesService",
+            "Both resolve the same root-provided instance when not overridden",
+            "Header changes the theme setting Signal",
+            "Reports screen reads the updated shared Signal",
+            "On session or tenant transition an explicit reset or scoped provider prevents stale data"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-028-flow",
+              "type": "sequence",
+              "title": "Root providers and service lifetime: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    participant H as Workspace Header\n    participant I as Root Injector\n    participant P as DisplayPreferencesService\n    participant R as Reports Screen\n    H->>I: inject(DisplayPreferencesService)\n    I-->>H: Root instance\n    R->>I: inject(DisplayPreferencesService)\n    I-->>R: Same root instance\n    H->>P: toggleContrast()\n    P-->>R: Shared Signal value updates\n    Note over H,R: A component-scoped override would use a separate instance",
+              "caption": "Conceptual teaching flow; backend authorization and data integrity are separate from Angular dependency injection."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "workspace-preferences.component.ts",
+          "runtime": "Angular 17+ Signals and standalone component; illustrates root-scoped UI preferences only.",
+          "code": "// FILE: workspace-preferences.component.ts\nimport { Component, Injectable, computed, inject, signal } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class DisplayPreferencesService {\n  private readonly highContrastState = signal(false);\n  readonly highContrast = this.highContrastState.asReadonly();\n  readonly mode = computed(() => this.highContrast() ? 'high' : 'normal');\n\n  toggleContrast(): void {\n    this.highContrastState.update(value => !value);\n  }\n\n  reset(): void {\n    this.highContrastState.set(false);\n  }\n}\n\n@Component({\n  selector: 'app-workspace-preferences',\n  standalone: true,\n  template: `\n    <button type=\"button\" (click)=\"preferences.toggleContrast()\">\n      Toggle contrast\n    </button>\n    <output>Current mode: {{ preferences.mode() }}</output>\n  `\n})\nexport class WorkspacePreferencesComponent {\n  readonly preferences = inject(DisplayPreferencesService);\n}\n",
+          "explanation": [
+            "The private writable Signal protects invariants; callers read highContrast and mode.",
+            "Root provision makes the service available across root-injector descendants by default.",
+            "A second component injecting the same service observes the same mode unless a provider is overridden.",
+            "reset() is an explicit cleanup hook for application/session transitions."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a multi-tenant SaaS practice app I would use root-scoped services for non-sensitive global preferences while deliberately isolating tenant-specific caches.",
+          "evidenceToCollect": [
+            "Component tests proving two consumers share the provided root service",
+            "A test proving reset() clears preferences",
+            "An ADR justifying root versus route-level scope for sensitive data"
+          ],
+          "doNotClaim": "This is a suggested practice-project narrative. Do not claim that the code was shipped, tested in production, or used by customers unless you have evidence."
+        },
+        "pitfalls": [
+          "A component providers array can shadow the root provider and create an unexpected second instance.",
+          "A root singleton does not share state across independent browser tabs.",
+          "SSR request isolation must be respected; static globals can leak data regardless of Angular DI.",
+          "Persisting session or tenant data in root services without reset creates stale-context risks."
+        ],
+        "whenNotToUse": [
+          "Do not put every temporary form value in a root-level service.",
+          "Do not assume providedIn root means one singleton across all deployments or users.",
+          "Do not use root-scoped caches for tenant-specific records without strict invalidation and isolation."
+        ],
+        "alternatives": [
+          {
+            "name": "Component providers",
+            "bestFor": "Independent per-component state",
+            "tradeoff": "Creates multiple instances and resets as those component instances are destroyed."
+          },
+          {
+            "name": "Route providers",
+            "bestFor": "Feature-local state associated with a route injector",
+            "tradeoff": "Lifetime follows the route EnvironmentInjector, not necessarily each route component instance."
+          },
+          {
+            "name": "Pure module constant",
+            "bestFor": "Fixed, non-secret application constants",
+            "tradeoff": "No injectable override or DI-scoped lifecycle; a plain constant is often sufficient."
+          }
+        ],
+        "testing": {
+          "strategy": "Create the sample in a current Angular CLI workspace, run a production build and Angular tests. Use TestBed to isolate DI, override providers when needed, and test rendered UI rather than treating TypeScript type checking as behavioral verification.",
+          "testCases": [
+            {
+              "case": "Two consumers under one root",
+              "expected": "They obtain the same DisplayPreferencesService instance."
+            },
+            {
+              "case": "Signal update",
+              "expected": "Both consumers read the updated mode."
+            },
+            {
+              "case": "Explicit provider override",
+              "expected": "A component subtree can receive a distinct instance."
+            }
+          ],
+          "negativeCases": [
+            "Do not expect preferences to survive a browser refresh without explicit persistence",
+            "Reset preferences on a simulated logout or workspace switch to prevent unintended carryover"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What is the root injector?"
+          ],
+          "intermediate": [
+            "What happens when a component adds the same service in providers?"
+          ],
+          "advanced": [
+            "How do route providers affect service lifetimes?"
+          ],
+          "expert": [
+            "How do you prevent state leakage across SSR requests and tenant switches?"
+          ]
+        },
+        "finalTakeaway": "Root provision shares one default application instance, but scope and data isolation remain architectural decisions."
+      },
+      "learningOutcomes": [
+        "Explain root provider scope precisely",
+        "Differentiate shared versus overridden instances",
+        "Identify and mitigate stale user-context state"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/di/dependency-injection-providers",
+          "https://angular.dev/guide/di/hierarchical-dependency-injection"
+        ],
+        "verificationScope": "Angular APIs reviewed against angular.dev reference pages; source examples checked by local TypeScript transpilation only. No Angular CLI template compilation, browser execution, or Mermaid rendering claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-029",
+      "sequence": 29,
+      "difficulty": "beginner",
+      "domain": "Services and Dependency Injection",
+      "topic": "Constructor injection versus inject function",
+      "question": "What is the difference between constructor injection and the inject() function?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "constructor",
+        "dependency-injection",
+        "function",
+        "inject",
+        "injection",
+        "services",
+        "versus"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Both injection styles resolve dependencies through Angular injector contexts."
+        },
+        "motivation": {
+          "whyIntroduced": "Angular initially emphasized class constructor parameter injection. The inject() function additionally supports functional APIs, property initializers and factories, reduces constructor boilerplate, and can improve type inference with token-based dependencies.",
+          "historicalNote": "Constructor injection declares parameters whose values Angular resolves while creating the class. inject() is a function requiring an active injection context. It works in class field initializers and during construction, but not inside arbitrary later event handlers or promise callbacks."
+        },
+        "problemSolved": {
+          "before": "A class declares many constructor parameters purely to assign private fields and cannot reuse the same style in a functional route guard.",
+          "after": "A class can use inject() in field initializers; functional guards and provider factories can also request dependencies without a class constructor.",
+          "benefits": [
+            "Both use the same provider system",
+            "Constructor parameters make required dependencies visible in the class signature",
+            "inject() works with functional guards and factories",
+            "inject() cannot run in arbitrary asynchronous or ordinary method contexts"
+          ]
+        },
+        "characteristics": [
+          "Constructor injection receives provider values as constructor arguments supplied by Angular.",
+          "inject() resolves a token within a currently active injection context.",
+          "Field initializers run as Angular creates the class and are valid places for inject().",
+          "Constructor injection and inject() can coexist; pick one clear convention per codebase.",
+          "An ordinary click handler is not an injection context; calling inject() there is invalid."
+        ],
+        "simpleAnalogy": {
+          "title": "Keys handed to a new employee",
+          "explanation": "A worker can receive keys as part of onboarding paperwork (constructor parameters) or collect them from the staffed office desk during onboarding (inject in an initializer). The desk is not necessarily available at any later moment."
+        },
+        "industryExample": {
+          "industry": "healthcare",
+          "scenario": "An appointment component needs AppointmentService and a logger; a functional guard must also access a session service.",
+          "implementation": "Demonstrate constructor injection in one Angular component and inject() in a second component; show that a functional guard can call inject() during guard evaluation.",
+          "businessImpact": "Engineers can choose a style that is easy to read while retaining identical backend access and permission enforcement.",
+          "importantConstraint": "The two syntaxes do not grant different access privileges. Healthcare record authorization is always enforced by the backend."
+        },
+        "useCases": [
+          "Constructor-injected feature components in mature Angular projects",
+          "Modern field-injected standalone components",
+          "Functional route guards using inject()",
+          "Provider factories that resolve other providers"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular begins creating a component under an active injector",
+            "Constructor injection requests dependencies through parameter metadata",
+            "Alternatively, field initialization calls inject(Service) in the creation context",
+            "Angular resolves both from matching providers",
+            "A later button click invokes methods on the stored instance, not inject()",
+            "A functional guard executes in an injection context and can request a service"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-029-flow",
+              "type": "flowchart",
+              "title": "Constructor injection versus inject function: end-to-end flow",
+              "mermaid": "flowchart TD\n    A[Angular creates component] --> B{Injection style}\n    B -->|Constructor parameter| C[Angular supplies parameter]\n    B -->|Field initializer| D[inject resolves token]\n    C --> E[Provider lookup]\n    D --> E\n    E --> F[Store service reference]\n    F --> G[User click uses stored reference]\n    H[Functional route guard] --> I[inject in guard evaluation]\n    I --> E",
+              "caption": "Conceptual teaching flow; backend authorization and data integrity are separate from Angular dependency injection."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "injection-styles.component.ts",
+          "runtime": "Angular standalone components; both injection approaches work on Angular DI-created classes.",
+          "code": "// FILE: injection-styles.component.ts\nimport { Component, Injectable, inject } from '@angular/core';\n\n@Injectable({ providedIn: 'root' })\nexport class AppointmentService {\n  summary(): string { return '3 fictional appointments today'; }\n}\n\n@Component({\n  selector: 'app-constructor-style',\n  standalone: true,\n  template: `<p>{{ appointments.summary() }}</p>`\n})\nexport class ConstructorStyleComponent {\n  constructor(readonly appointments: AppointmentService) {}\n}\n\n@Component({\n  selector: 'app-inject-style',\n  standalone: true,\n  template: `<p>{{ summary }}</p>`\n})\nexport class InjectStyleComponent {\n  private readonly appointments = inject(AppointmentService);\n  readonly summary = this.appointments.summary();\n}\n\n// Both components request the same root-provided AppointmentService.\n// Do not move inject(AppointmentService) into a normal click callback.\n",
+          "explanation": [
+            "The first component declares the dependency in its constructor signature.",
+            "The second requests the same token from a field initializer.",
+            "Both styles use Angular providers, not separate service containers.",
+            "The comment illustrates a common invalid injection-context mistake without executing it."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a fictional healthcare scheduling UI I would use inject() for standalone components while being comfortable maintaining constructor-injected legacy components.",
+          "evidenceToCollect": [
+            "Two working components with identical service output",
+            "TestBed test overriding AppointmentService for both styles",
+            "Code review guideline explaining when inject() is allowed"
+          ],
+          "doNotClaim": "This is a suggested practice-project narrative. Do not claim that the code was shipped, tested in production, or used by customers unless you have evidence."
+        },
+        "pitfalls": [
+          "Calling inject() from ngOnInit or an ordinary method is not allowed merely because the method belongs to an Angular component.",
+          "Accessing an injected class field from an earlier field initializer can encounter class initialization order problems.",
+          "Constructor decorators and token inference differ from inject() for some non-class tokens.",
+          "Using two styles inconsistently without a convention can make code reviews harder."
+        ],
+        "whenNotToUse": [
+          "Do not call inject() after awaiting a Promise unless you are still in a valid synchronous injection context (normally you are not).",
+          "Do not rewrite functioning constructor-injected code solely to adopt a new syntax without benefit.",
+          "Do not use service locators to conceal dependencies in ordinary non-Angular TypeScript functions."
+        ],
+        "alternatives": [
+          {
+            "name": "Constructor injection",
+            "bestFor": "Explicit class dependency signatures and familiar legacy code",
+            "tradeoff": "Can introduce long constructors for dependency-rich classes."
+          },
+          {
+            "name": "inject() field initializer",
+            "bestFor": "Standalone components, DI tokens and functional-oriented APIs",
+            "tradeoff": "Valid only in injection context; dependencies are distributed among fields."
+          },
+          {
+            "name": "Explicit parameter passing",
+            "bestFor": "Ordinary functions that should remain framework independent",
+            "tradeoff": "The caller must supply required collaborators."
+          }
+        ],
+        "testing": {
+          "strategy": "Create the sample in a current Angular CLI workspace, run a production build and Angular tests. Use TestBed to isolate DI, override providers when needed, and test rendered UI rather than treating TypeScript type checking as behavioral verification.",
+          "testCases": [
+            {
+              "case": "Render constructor style",
+              "expected": "AppointmentService summary appears."
+            },
+            {
+              "case": "Render inject style",
+              "expected": "Same summary appears from the same provider."
+            },
+            {
+              "case": "Override provider for both",
+              "expected": "Test double changes the rendered value of either component."
+            }
+          ],
+          "negativeCases": [
+            "Call inject() in an ordinary method and expect Angular NG0203",
+            "Do not assume two syntaxes cause duplicate service instances when scopes are identical"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "Can a component use both styles?"
+          ],
+          "intermediate": [
+            "Why does inject() fail in a normal button-click handler?"
+          ],
+          "advanced": [
+            "How does runInInjectionContext work, and what are its synchronous limitations?"
+          ],
+          "expert": [
+            "How would you establish a consistent injection style during a large framework migration?"
+          ]
+        },
+        "finalTakeaway": "Both styles access the same DI system; choose based on clarity and injection-context constraints."
+      },
+      "learningOutcomes": [
+        "Explain syntax and runtime semantics",
+        "Identify valid inject() call locations",
+        "Maintain legacy and modern injection patterns safely"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/di",
+          "https://angular.dev/guide/di/dependency-injection-context"
+        ],
+        "verificationScope": "Angular APIs reviewed against angular.dev reference pages; source examples checked by local TypeScript transpilation only. No Angular CLI template compilation, browser execution, or Mermaid rendering claimed."
+      }
+    },
+    {
+      "id": "ANG-BEG-030",
+      "sequence": 30,
+      "difficulty": "beginner",
+      "domain": "Services and Dependency Injection",
+      "topic": "Shared account service using Signals",
+      "question": "Build an AccountService that exposes account data to multiple components without duplicating state.",
+      "questionType": "coding",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "account",
+        "angular",
+        "beginner",
+        "dependency-injection",
+        "service",
+        "services",
+        "shared",
+        "signals",
+        "using"
+      ],
+      "answer": {
+        "definition": {
+          "text": "A shared account service exposes one consistent reactive state."
+        },
+        "motivation": {
+          "whyIntroduced": "When multiple dashboard components each keep their own account balance, refreshes can produce divergent UI states and duplicate data-fetching logic. A shared service can centralize a read model and expose readonly Signals to independent consumers.",
+          "historicalNote": "Root-provided services default to a shared instance in an application root injector; Angular Signals automatically notify dependent templates when their value changes. This demonstration uses fictional data and performs only local state updates. No simulated balance adjustment is a real financial transaction."
+        },
+        "problemSolved": {
+          "before": "The account header and balance card each declare their own number; changing one leaves the other stale.",
+          "after": "Both components inject the same AccountService and render one readonly account Signal; updates pass through controlled service methods.",
+          "benefits": [
+            "One default state owner",
+            "Both UI views update consistently",
+            "Encapsulated mutation methods",
+            "Easy unit tests for shared state behavior"
+          ]
+        },
+        "characteristics": [
+          "A root provider normally supplies one instance to both consumers unless overridden.",
+          "The writable Signal is private; readonly Signal access protects against direct external modification.",
+          "Computed Signals derive display values without storing duplicate derived state.",
+          "The account model is immutable-in-practice by replacing the object on update, not mutating nested properties.",
+          "Production banking balances must come from backend-authoritative accounting services; this mock never moves money."
+        ],
+        "simpleAnalogy": {
+          "title": "One shared scoreboard",
+          "explanation": "Two spectators look at the same scoreboard rather than maintaining separate handwritten scores. The official operator updates the board, and both spectators see the same new value."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "The banking practice portal has an account header and a balance card showing a fictional demo balance.",
+          "implementation": "Inject AccountService into two independent standalone components. The service exposes a readonly Signal for the account and a method that refreshes a fictional account snapshot; both screens automatically reflect the new value.",
+          "businessImpact": "Users see consistent data during demonstrations and engineers can test updates through one source of UI state.",
+          "importantConstraint": "Never let an Angular service be the source of truth for real bank balances, authorize transfers, or calculate ledger entries; the backend must perform those operations and return authoritative snapshots."
+        },
+        "useCases": [
+          "One shared account overview across screens",
+          "Common current-user profile read model",
+          "Centralized display preferences across sibling components",
+          "Feature-local shared data using a more narrowly scoped provider when appropriate"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular root injector creates AccountService as needed",
+            "Header and balance card both inject the same instance",
+            "Each component template reads account() or balanceLabel()",
+            "A demo button calls refreshFromDemoSnapshot() on the service",
+            "Service sets a new account object with changed fictional snapshot",
+            "Angular Signals notify both consuming templates to render the new value"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-030-flow",
+              "type": "sequence",
+              "title": "Shared account service using Signals: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    actor U as Learner\n    participant H as AccountHeader\n    participant S as AccountService\n    participant B as AccountBalanceCard\n    U->>H: Click refresh demo balance\n    H->>S: refreshFromDemoSnapshot()\n    S->>S: Set new readonly account model\n    S-->>H: Signal invalidates header view\n    S-->>B: Signal invalidates balance card view\n    H-->>U: Show updated account\n    B-->>U: Show updated demo balance\n    Note over S,B: Production account data must be server authorized",
+              "caption": "Conceptual teaching flow; backend authorization and data integrity are separate from Angular dependency injection."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shared-account-demo.component.ts",
+          "runtime": "Angular 17+ standalone components and Signals; two consumers share root-provided service; uses only fictional local data.",
+          "code": "// FILE: shared-account-demo.component.ts\nimport { Component, Injectable, computed, inject, signal } from '@angular/core';\n\ntype DemoAccount = Readonly<{\n  id: string;\n  holder: string;\n  currency: 'INR';\n  balanceMinor: number;\n}>;\n\n@Injectable({ providedIn: 'root' })\nexport class AccountService {\n  private readonly accountState = signal<DemoAccount>({\n    id: 'demo-001', holder: 'Demo Customer', currency: 'INR', balanceMinor: 125000\n  });\n  readonly account = this.accountState.asReadonly();\n  readonly balanceLabel = computed(() =>\n    `${this.account().currency} ${(this.account().balanceMinor / 100).toFixed(2)}`\n  );\n  refreshFromDemoSnapshot(): void {\n    this.accountState.set({ ...this.account(), balanceMinor: 127500 });\n  }\n}\n\n@Component({\n  selector: 'app-account-header', standalone: true,\n  template: `<header>{{ accounts.account().holder }}\n    <button type=\"button\" (click)=\"accounts.refreshFromDemoSnapshot()\">\n      Refresh demo snapshot\n    </button></header>`\n})\nexport class AccountHeaderComponent {\n  readonly accounts = inject(AccountService);\n}\n\n@Component({\n  selector: 'app-account-balance-card', standalone: true,\n  template: `<section aria-label=\"Demo balance\">\n    {{ accounts.balanceLabel() }}\n  </section>`\n})\nexport class AccountBalanceCardComponent {\n  readonly accounts = inject(AccountService);\n}\n\n@Component({\n  selector: 'app-shared-account-demo', standalone: true,\n  imports: [AccountHeaderComponent, AccountBalanceCardComponent],\n  template: `<app-account-header /><app-account-balance-card />`\n})\nexport class SharedAccountDemoComponent {}\n",
+          "explanation": [
+            "The AccountService owns one private writable Signal and publishes readonly access.",
+            "Both components request the same service token from the root injector.",
+            "Clicking refresh changes the fictional snapshot through a controlled method.",
+            "computed() recalculates the balance string from the shared account Signal.",
+            "In a production version, replace the demo method with a validated, authorized backend read and robust loading/error states."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a banking practice application I would build a shared account read-model service, connect both the header and balance card, and collect tests proving they remain consistent after a refresh.",
+          "evidenceToCollect": [
+            "A component test asserting both views change together",
+            "A unit test verifying account() is not directly writable from outside the service",
+            "A diagram and README explaining backend-authoritative balances"
+          ],
+          "doNotClaim": "This is a suggested practice-project narrative. Do not claim that the code was shipped, tested in production, or used by customers unless you have evidence."
+        },
+        "pitfalls": [
+          "Component-level providers for AccountService would create separate instances for those subtrees and break sharing.",
+          "Readonly Signals prevent calling set() through that reference but do not deeply freeze nested objects.",
+          "Mutating an object in place without set/update may not notify dependents.",
+          "A client-side mock balance is not secure financial data or a ledger.",
+          "Root state can become stale across logout or account changes; invalidation and reset are required."
+        ],
+        "whenNotToUse": [
+          "Never update real bank balances only in the browser.",
+          "Never persist confidential account records in global state without access-control and lifecycle design.",
+          "Do not use one root service for isolated tenants when independent scopes are required."
+        ],
+        "alternatives": [
+          {
+            "name": "Inputs and outputs",
+            "bestFor": "Direct parent-child data transfer with clear local ownership",
+            "tradeoff": "Less convenient for unrelated branches of the component tree."
+          },
+          {
+            "name": "RxJS BehaviorSubject service",
+            "bestFor": "Shared observable streams and rich async operator composition",
+            "tradeoff": "Requires subscription and emission semantics distinct from Signals."
+          },
+          {
+            "name": "Route-scoped Signal service",
+            "bestFor": "A feature-local account view model",
+            "tradeoff": "Instance is not automatically shared beyond the route injector."
+          }
+        ],
+        "testing": {
+          "strategy": "Create the sample in a current Angular CLI workspace, run a production build and Angular tests. Use TestBed to isolate DI, override providers when needed, and test rendered UI rather than treating TypeScript type checking as behavioral verification.",
+          "testCases": [
+            {
+              "case": "Initial render",
+              "expected": "Header shows Demo Customer and balance card reads INR 1250.00."
+            },
+            {
+              "case": "Click refresh demo snapshot",
+              "expected": "Balance card updates to INR 1275.00 and header still shows the same customer."
+            },
+            {
+              "case": "Same root injector instance",
+              "expected": "Both components inject strictly the same AccountService object."
+            },
+            {
+              "case": "No unintended update",
+              "expected": "No balance change occurs unless refreshFromDemoSnapshot is invoked."
+            }
+          ],
+          "negativeCases": [
+            "Providing AccountService on each child should show independent state as a deliberately failing comparison",
+            "The mock must never call a transfer endpoint or claim to update real money"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "Why does a shared service reduce duplicated UI state?"
+          ],
+          "intermediate": [
+            "How can an HTTP Observable update a Signal safely?"
+          ],
+          "advanced": [
+            "How do you prevent stale account responses from overwriting newer ones?"
+          ],
+          "expert": [
+            "How would you model user/tenant scoped caches and backend freshness guarantees at enterprise scale?"
+          ]
+        },
+        "finalTakeaway": "One scoped read-model service reduces duplicated UI state, while server systems retain financial authority."
+      },
+      "learningOutcomes": [
+        "Create root-injected Signal service",
+        "Demonstrate two UI consumers react to one source",
+        "Explain Signal mutation and frontend-versus-backend trust boundaries"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/di",
+          "https://angular.dev/guide/di/dependency-injection-providers",
+          "https://angular.dev/guide/di/hierarchical-dependency-injection",
+          "https://angular.dev/guide/http/making-requests"
+        ],
+        "verificationScope": "Angular APIs reviewed against angular.dev reference pages; source examples checked by local TypeScript transpilation only. No Angular CLI template compilation, browser execution, or Mermaid rendering claimed."
+      }
+    }
+  ]
+}

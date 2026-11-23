@@ -1,0 +1,1043 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-07",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 31,
+      "end": 35
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-031",
+      "sequence": 31,
+      "difficulty": "beginner",
+      "domain": "RxJS Fundamentals and Angular Signals",
+      "topic": "Observables and Promises",
+      "question": "What is an Observable, and how is it different from a Promise?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "logistics"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "httpclient",
+        "lazy",
+        "observable",
+        "promise",
+        "rxjs",
+        "rxjs-signals",
+        "subscription"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Observables model subscribed streams; promises represent one eventual outcome."
+        },
+        "motivation": {
+          "whyIntroduced": "Promise-based APIs represent one eventual resolution or rejection, but UIs also need multiple values over time: input changes, WebSocket events, timers and request flows. RxJS Observables provide a common composable protocol for these streams. Angular HttpClient returns Observables so consumers can transform responses and control subscriptions.",
+          "historicalNote": "Promises and Observables solve overlapping, not identical, problems. Observables are not automatically faster or inherently asynchronous: an Observable can emit synchronously, and work starts according to how its producer was implemented."
+        },
+        "problemSolved": {
+          "before": "A shipment screen combines ad hoc callbacks, timers and one-shot promises, making cleanup and transformation inconsistent.",
+          "after": "The screen uses Observables with explicit subscription semantics, operators, and teardown where appropriate; one-shot async tasks may still use Promises.",
+          "benefits": [
+            "Supports zero, one or many next values followed by completion or error",
+            "Composable filtering, transformation and flattening operators",
+            "Explicit teardown via unsubscribe for streams that need it",
+            "Works with Angular AsyncPipe and RxJS interop"
+          ]
+        },
+        "characteristics": [
+          "An Observable is a recipe for notifications: next, error and complete; terminal signals end a subscription.",
+          "Many sources are cold: each subscription triggers independent producer work, but hot streams can share sources.",
+          "Emission may be synchronous or asynchronous; Observable is not synonymous with asynchronous execution.",
+          "Unsubscribing tears down its subscription but cannot automatically undo external side effects already committed.",
+          "A Promise settles once and remains eager after its producer starts; cancelling a subscriber does not turn it into a cancellable Promise."
+        ],
+        "simpleAnalogy": {
+          "title": "Radio channel versus delivered parcel",
+          "explanation": "A parcel arrives once and is either delivered or fails, like a Promise. A radio subscription may deliver many broadcasts until you disconnect; listeners do not cause the station to repeat yesterday’s news."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A shipment dashboard loads initial shipment details and then updates live delivery progress.",
+          "implementation": "Use an HttpClient Observable for the one-time details request and a separate shared transport stream for live status updates. Render current state via AsyncPipe or a signal, and dispose the live subscription when its scope ends.",
+          "businessImpact": "Users see both initial details and subsequent changes without writing nested event callbacks.",
+          "importantConstraint": "The backend owns authoritative shipment state; receiving a message or cancelling a stream never guarantees a delivery event was rolled back."
+        },
+        "useCases": [
+          "HttpClient response pipelines and declarative templates",
+          "Search-input changes and form valueChanges streams",
+          "WebSocket tracking or notifications",
+          "Timer, user event and retryable asynchronous workflows"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Component creates a typed cold Observable for a simulated shipment lookup",
+            "No producer runs merely because the Observable variable exists",
+            "The first subscriber triggers the producer and receives one result",
+            "A second subscriber triggers its own execution on this cold source",
+            "An independent live stream may emit multiple statuses until teardown"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-031-flow",
+              "type": "sequence",
+              "title": "Observables and Promises: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    actor U as User\n    participant C as Angular Screen\n    participant O as Cold Observable\n    participant P as Producer\n    U->>C: Open shipment\n    C->>O: subscribe()\n    O->>P: Start simulated lookup\n    P-->>O: next(shipment)\n    O-->>C: value\n    P-->>O: complete()\n    C-->>U: Show details",
+              "caption": "Educational example; domain authorization and persisted system state remain server responsibilities."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "observable-vs-promise.ts",
+          "runtime": "RxJS 7+ with TypeScript; run with npx tsx in a project with rxjs installed.",
+          "code": "// FILE: observable-vs-promise.ts\nimport { Observable, firstValueFrom } from 'rxjs';\n\ntype Shipment = Readonly<{ id: string; status: 'in-transit' | 'delivered' }>;\nlet executions = 0;\n\n// Cold and synchronous for demonstration; a real HTTP request is async.\nconst shipment$ = new Observable<Shipment>(subscriber => {\n  executions += 1;\n  subscriber.next({ id: 'DEMO-1', status: 'in-transit' });\n  subscriber.complete();\n});\n\nshipment$.subscribe(value => console.log('subscriber A', value));\nshipment$.subscribe(value => console.log('subscriber B', value));\nconsole.log('executions', executions); // 2 independent executions\n\nasync function oneValue(): Promise<Shipment> {\n  return firstValueFrom(shipment$); // subscribes and resolves on first value\n}\noneValue().then(value => console.log('promise result', value));\n",
+          "explanation": [
+            "The Observable producer increments executions only after subscription, showing cold execution.",
+            "Two subscriptions execute this producer twice; not all Observables are cold, so do not generalize to every source.",
+            "firstValueFrom bridges a stream to a Promise; it is appropriate only when an emission is expected.",
+            "A hanging Observable that never emits or completes can leave firstValueFrom pending; use timeout or take(1) where appropriate."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would use a cold HttpClient stream for initial shipment details and a separately managed live tracking stream. I would demonstrate distinct subscriptions, cancellation and teardown in the practice project.",
+          "evidenceToCollect": [
+            "A screen showing initial fetch and live updates separately",
+            "A test proving cold-source subscription count",
+            "A screenshot or recording proving live stream cleanup after navigation"
+          ],
+          "doNotClaim": "This is a proposed learning-project narrative. Do not claim it is deployed, used by customers, or previously implemented unless evidence exists."
+        },
+        "pitfalls": [
+          "Subscribing to a cold HttpClient Observable twice can issue duplicate requests.",
+          "Unsubscribing from a client-side request cannot revoke a server-side write that already committed.",
+          "A never-ending Observable passed to lastValueFrom may leave the Promise unresolved.",
+          "Subscribing imperatively without teardown can leak long-lived streams."
+        ],
+        "whenNotToUse": [
+          "Do not choose Observables for a simple synchronous calculation with no event stream.",
+          "Do not claim all Observables are lazy, cold, asynchronous or inherently cancellable at the business layer.",
+          "Do not use Promise conversion for a stream when ongoing emissions are required."
+        ],
+        "alternatives": [
+          {
+            "name": "Promise/async-await",
+            "bestFor": "Single asynchronous value and naturally sequential control flow",
+            "tradeoff": "Cannot represent multiple future values; producer cancellation requires separate design"
+          },
+          {
+            "name": "Signal",
+            "bestFor": "Current reactive UI state with synchronous reads",
+            "tradeoff": "Not inherently an event/history stream or request cancellation primitive"
+          },
+          {
+            "name": "EventTarget/callback",
+            "bestFor": "Small local event source with few transformations",
+            "tradeoff": "Manual composition and cleanup can become complex"
+          }
+        ],
+        "testing": {
+          "strategy": "Run the sample in the declared runtime, write behavioral assertions using fake time or controlled test streams when relevant, and distinguish syntax checks from Angular template compilation and browser execution.",
+          "testCases": [
+            {
+              "case": "Cold stream subscriptions",
+              "expected": "Two subscriptions execute the producer twice."
+            },
+            {
+              "case": "Error channel",
+              "expected": "An Observable error reaches the error observer and terminates that subscription."
+            },
+            {
+              "case": "Interop",
+              "expected": "firstValueFrom resolves with the first emitted value."
+            }
+          ],
+          "negativeCases": [
+            "Test a never-emitting source with timeout rather than allowing a hanging test.",
+            "Confirm server writes cannot be assumed rolled back after client unsubscribe."
+          ],
+          "verificationCommand": "npx tsx observable-vs-promise.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "What do next, error and complete represent?"
+          ],
+          "intermediate": [
+            "How do hot and cold sources change multicasting behavior?"
+          ],
+          "advanced": [
+            "How would you cache a GET response without introducing stale-user data?"
+          ],
+          "expert": [
+            "How would you reason about subscription ownership and server side effects in cross-region event delivery?"
+          ]
+        },
+        "finalTakeaway": "Use Observables for composable streams; choose Promises for single outcomes and model teardown explicitly."
+      },
+      "learningOutcomes": [
+        "Explain observables and promises clearly and distinguish related APIs.",
+        "Implement or trace the example of question 31 and state its expected behavior.",
+        "Identify a production anti-pattern and propose a safer alternative."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://rxjs.dev/guide/observable",
+          "https://rxjs.dev/guide/subject",
+          "https://rxjs.dev/api/operators",
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Concepts cross-checked against public Angular and RxJS references. TypeScript transpilation performed locally; Angular template compilation and Mermaid browser rendering are not claimed unless tested separately."
+      }
+    },
+    {
+      "id": "ANG-BEG-032",
+      "sequence": 32,
+      "difficulty": "beginner",
+      "domain": "RxJS Fundamentals and Angular Signals",
+      "topic": "Subject and BehaviorSubject",
+      "question": "What are Subject and BehaviorSubject, and when would you use each?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "saas",
+        "banking",
+        "healthcare"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "behaviorsubject",
+        "current-value",
+        "multicast",
+        "rxjs-signals",
+        "state",
+        "subject"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Subjects multicast notifications; BehaviorSubjects additionally retain current values."
+        },
+        "motivation": {
+          "whyIntroduced": "Ordinary cold Observables often repeat their producer for each subscriber. Sometimes many UI consumers must receive events from one shared source. Subject is an observer and Observable, allowing explicit multicasting. BehaviorSubject extends that model with an initial/current value for late subscribers.",
+          "historicalNote": "BehaviorSubject is an RxJS construct, not a built-in Angular state store. Its current-value behavior can be valuable, but it does not automatically provide immutable state, authorization or persistence."
+        },
+        "problemSolved": {
+          "before": "A workspace header and permissions panel invent separate event callbacks and fall out of sync after workspace selection.",
+          "after": "A focused service exposes a read-only Observable of active workspace state, backed by a private BehaviorSubject seeded with a valid initial state.",
+          "benefits": [
+            "Multicasts pushed values to multiple active subscribers",
+            "BehaviorSubject provides a current value immediately on normal subscription",
+            "Encapsulation protects writes by exposing asObservable()",
+            "Simple migration path for an existing RxJS-driven service"
+          ]
+        },
+        "characteristics": [
+          "Subject has no required initial value and does not replay earlier next notifications to late subscribers.",
+          "BehaviorSubject requires an initial value and supplies its current value on subscription while active.",
+          "Both are hot multicast sources whose next() can be invoked by producers.",
+          "An error or completion terminates a Subject; a terminal BehaviorSubject should not be treated as a perpetual reusable store.",
+          "Exposing asObservable() prevents consumers from calling next() through the public API."
+        ],
+        "simpleAnalogy": {
+          "title": "Town announcement versus current noticeboard",
+          "explanation": "A public announcement is heard only by people already listening (Subject). A noticeboard shows the current instruction to a newcomer immediately (BehaviorSubject). Neither is automatically an archival log."
+        },
+        "industryExample": {
+          "industry": "saas",
+          "scenario": "Users switch between tenant workspaces and several components must reflect the active workspace.",
+          "implementation": "A WorkspaceService owns a private BehaviorSubject seeded with null, exposes an observable to the header and navigation, and explicitly clears tenant-specific resources on switching.",
+          "businessImpact": "Existing and newly mounted UI areas agree on which workspace is selected.",
+          "importantConstraint": "The server still validates tenant membership on every relevant request. A client-side BehaviorSubject cannot enforce tenant isolation or protect against stale in-flight responses."
+        },
+        "useCases": [
+          "Current active tenant or workspace state in an RxJS-heavy app",
+          "One-to-many in-process notification bus for ephemeral events",
+          "Form wizard state scoped to a route and seeded predictably",
+          "Broadcasting selected filters to multiple widgets"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Workspace service creates BehaviorSubject with null initial value",
+            "Header subscribes and immediately receives null",
+            "User selects a permitted demo workspace; service calls next()",
+            "Header and menu receive the same new workspace",
+            "A late subscriber immediately receives the current workspace",
+            "Logout or tenant transition resets sensitive scoped state"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-032-flow",
+              "type": "sequence",
+              "title": "Subject and BehaviorSubject: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    actor U as User\n    participant W as WorkspaceService\n    participant H as Header Subscriber\n    participant M as Menu Subscriber\n    H->>W: subscribe()\n    W-->>H: null (initial)\n    U->>W: selectWorkspace(DEMO-A)\n    W-->>H: DEMO-A\n    M->>W: subscribe()\n    W-->>M: DEMO-A (current)",
+              "caption": "Educational example; domain authorization and persisted system state remain server responsibilities."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "workspace-state.ts",
+          "runtime": "RxJS 7+ with TypeScript; run with npx tsx in a project with rxjs installed.",
+          "code": "// FILE: workspace-state.ts\nimport { BehaviorSubject } from 'rxjs';\n\ntype Workspace = Readonly<{ id: string; label: string }>;\n\nexport class WorkspaceState {\n  private readonly selectedSubject = new BehaviorSubject<Workspace | null>(null);\n  readonly selected$ = this.selectedSubject.asObservable();\n\n  select(workspace: Workspace | null): void {\n    this.selectedSubject.next(workspace);\n  }\n\n  snapshot(): Workspace | null {\n    return this.selectedSubject.getValue();\n  }\n}\n\nconst state = new WorkspaceState();\nconst first = state.selected$.subscribe(value => console.log('first', value?.id ?? 'none'));\nstate.select({ id: 'DEMO-A', label: 'Practice tenant' });\nconst late = state.selected$.subscribe(value => console.log('late', value?.id ?? 'none'));\nfirst.unsubscribe();\nlate.unsubscribe();\n",
+          "explanation": [
+            "BehaviorSubject starts with null, avoiding a made-up default tenant.",
+            "The first subscriber receives null and then DEMO-A; the late subscriber immediately receives DEMO-A.",
+            "Only the service can call next() because the subject is private.",
+            "snapshot() is a convenience read of current state, not an authorization check or persistence guarantee."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would implement WorkspaceState in the SaaS practice app, subscribe from a header and a menu, and test the initial value and late-subscription behavior.",
+          "evidenceToCollect": [
+            "A test showing the initial null emission and current-value delivery",
+            "Code proving subjects remain private",
+            "A logout test ensuring tenant-specific data gets cleared"
+          ],
+          "doNotClaim": "This is a proposed learning-project narrative. Do not claim it is deployed, used by customers, or previously implemented unless evidence exists."
+        },
+        "pitfalls": [
+          "Late subscribers to plain Subject do not receive previous events.",
+          "BehaviorSubject needs a meaningful initial value; using a fake real tenant can be dangerous.",
+          "Using a root-scoped BehaviorSubject for sensitive user/tenant state without clearing it can expose stale information.",
+          "BehaviorSubject does not automatically deduplicate equal values.",
+          "A terminal or errored subject is not appropriate as a long-lived reinitializable store."
+        ],
+        "whenNotToUse": [
+          "Do not use a global Subject as a substitute for typed domain contracts.",
+          "Do not rely on client-side current workspace state for backend tenant authorization.",
+          "Do not expose the writable Subject publicly when consumers should only observe it."
+        ],
+        "alternatives": [
+          {
+            "name": "Subject",
+            "bestFor": "Transient notifications where late subscribers should not replay",
+            "tradeoff": "No current-value guarantee"
+          },
+          {
+            "name": "ReplaySubject(1)",
+            "bestFor": "Replay latest emission without requiring an initial seed",
+            "tradeoff": "No initial synchronous state before first emission"
+          },
+          {
+            "name": "Angular signal",
+            "bestFor": "Synchronous current UI state with derived computations",
+            "tradeoff": "No built-in stream semantics; use RxJS for async pipelines"
+          }
+        ],
+        "testing": {
+          "strategy": "Run the sample in the declared runtime, write behavioral assertions using fake time or controlled test streams when relevant, and distinguish syntax checks from Angular template compilation and browser execution.",
+          "testCases": [
+            {
+              "case": "Initial emission",
+              "expected": "First BehaviorSubject subscriber immediately receives null."
+            },
+            {
+              "case": "Late subscriber",
+              "expected": "Subscriber added after selecting DEMO-A immediately receives DEMO-A."
+            },
+            {
+              "case": "Public read-only contract",
+              "expected": "Only service exposes select(); consumer cannot call next() on selected$."
+            }
+          ],
+          "negativeCases": [
+            "Test state clearing after logout or workspace change.",
+            "Confirm Subject late subscriber sees no prior next value."
+          ],
+          "verificationCommand": "npx tsx workspace-state.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "Why does BehaviorSubject need an initial value?"
+          ],
+          "intermediate": [
+            "How do ReplaySubject(1) and BehaviorSubject differ before the first value?"
+          ],
+          "advanced": [
+            "How would you prevent stale in-flight tenant requests from contaminating state?"
+          ],
+          "expert": [
+            "What controls prevent cross-tenant state leakage through shared caches or SSR?"
+          ]
+        },
+        "finalTakeaway": "Choose Subject for events and BehaviorSubject for current values; neither substitutes for server authorization."
+      },
+      "learningOutcomes": [
+        "Explain subject and behaviorsubject clearly and distinguish related APIs.",
+        "Implement or trace the example of question 32 and state its expected behavior.",
+        "Identify a production anti-pattern and propose a safer alternative."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://rxjs.dev/guide/observable",
+          "https://rxjs.dev/guide/subject",
+          "https://rxjs.dev/api/operators",
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Concepts cross-checked against public Angular and RxJS references. TypeScript transpilation performed locally; Angular template compilation and Mermaid browser rendering are not claimed unless tested separately."
+      }
+    },
+    {
+      "id": "ANG-BEG-033",
+      "sequence": 33,
+      "difficulty": "beginner",
+      "domain": "RxJS Fundamentals and Angular Signals",
+      "topic": "Core RxJS operators",
+      "question": "What are subscribe(), pipe(), map(), filter() and tap() in RxJS?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "ecommerce",
+        "logistics",
+        "banking"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "filter",
+        "map",
+        "pipe",
+        "rxjs",
+        "rxjs-signals",
+        "subscribe",
+        "tap"
+      ],
+      "answer": {
+        "definition": {
+          "text": "RxJS operators transform streams; subscriptions activate observable consumption paths."
+        },
+        "motivation": {
+          "whyIntroduced": "Without composition, data preparation is spread across nested subscribe callbacks, making transformations difficult to reuse and test. RxJS pipe chains declaratively transform or observe values before a consumer subscribes.",
+          "historicalNote": "pipe() does not start a cold producer by itself. Operators such as map and filter are pure transformation/selectors when their supplied callbacks are pure; tap is intended for side effects like diagnostics."
+        },
+        "problemSolved": {
+          "before": "An orders screen subscribes to raw rows and mixes filtering, mapping, logging and display assignment in one callback.",
+          "after": "A typed Observable pipeline filters paid orders, maps them to display labels, uses tap for optional instrumentation and leaves the final subscriber to consume the view models.",
+          "benefits": [
+            "Readable, composable stream transformations",
+            "Separated pure mapping from effects",
+            "Simple testing of output values",
+            "Reuse of operator chains across domain features"
+          ]
+        },
+        "characteristics": [
+          "subscribe() attaches a consumer; cold producers typically start then and can be torn down by unsubscribe().",
+          "pipe() returns a new Observable description; it does not mutate the original source.",
+          "map() transforms each next value one-for-one, while filter() suppresses next values whose predicate is false.",
+          "tap() observes values or notifications but normally passes the same values through; an exception inside tap can error the stream.",
+          "Operator order matters: map before filter may change predicate inputs and behavior."
+        ],
+        "simpleAnalogy": {
+          "title": "Mail sorting conveyor",
+          "explanation": "A sorting line rejects nonpriority envelopes (filter), adds standardized labels to accepted envelopes (map), and records a scan (tap). Opening the receiving desk connects the consumer (subscribe)."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "An operations screen displays only paid orders with readable currency labels.",
+          "implementation": "Represent incoming order events as a typed source, filter to paid orders, project to labels, and log processing in a tap callback; subscribe for display or use AsyncPipe in Angular.",
+          "businessImpact": "Order widgets display consistent derived information with a pipeline that can be unit tested.",
+          "importantConstraint": "Never rely on frontend filtering as proof of payment or authorization; payment state must be confirmed by the backend."
+        },
+        "useCases": [
+          "Convert backend DTOs to Angular view models",
+          "Exclude unwanted event notifications",
+          "Log or measure pipeline processing without changing values",
+          "Transform form and search streams before UI rendering"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "An order stream emits paid, pending and paid records",
+            "filter() excludes the pending order",
+            "map() creates a read-only formatted output for paid records",
+            "tap() records a diagnostic message but leaves values unchanged",
+            "The subscriber renders only the two paid order labels"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-033-flow",
+              "type": "flowchart",
+              "title": "Core RxJS operators: end-to-end flow",
+              "mermaid": "flowchart LR\n    A[Order source] --> B{filter paid?}\n    B -- No --> X[Suppress emission]\n    B -- Yes --> C[map to label]\n    C --> D[tap diagnostic]\n    D --> E[Subscriber]",
+              "caption": "Educational example; domain authorization and persisted system state remain server responsibilities."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "order-operators.ts",
+          "runtime": "RxJS 7+ with TypeScript; run with npx tsx in a project with rxjs installed.",
+          "code": "// FILE: order-operators.ts\nimport { from, filter, map, tap } from 'rxjs';\n\ntype Order = Readonly<{ id: string; status: 'paid' | 'pending'; totalMinor: number }>;\nconst orders: readonly Order[] = [\n  { id: 'A', status: 'paid', totalMinor: 1200 },\n  { id: 'B', status: 'pending', totalMinor: 750 },\n  { id: 'C', status: 'paid', totalMinor: 450 }\n];\n\nconst paidLabels$ = from(orders).pipe(\n  filter(order => order.status === 'paid'),\n  map(order => `${order.id}: ${order.totalMinor} minor units`),\n  tap(label => console.log('processed', label))\n);\n\npaidLabels$.subscribe(label => console.log('visible', label));\n// visible: A and C; B is filtered out.\n",
+          "explanation": [
+            "from(orders) emits each array item as a separate notification.",
+            "filter checks the typed status property, map converts each accepted order into a label.",
+            "tap logs observable output without intentionally modifying its emitted value.",
+            "A subscription activates this cold pipeline. In Angular, prefer AsyncPipe for template-bound streams when feasible."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would use a pipeline like this for the E-Commerce order list and write a marble-independent unit test using toArray() to assert exact displayed labels.",
+          "evidenceToCollect": [
+            "A captured test confirming only paid orders are shown",
+            "A code review demonstrating no nested subscribe for basic transformations",
+            "A note explaining why server-side order authorization remains mandatory"
+          ],
+          "doNotClaim": "This is a proposed learning-project narrative. Do not claim it is deployed, used by customers, or previously implemented unless evidence exists."
+        },
+        "pitfalls": [
+          "Calling subscribe() separately in several consumers may repeat cold HTTP requests.",
+          "Returning a value from tap does not replace the emitted value; use map instead.",
+          "Mutating objects inside map or tap can create surprising shared-state behavior.",
+          "filter only suppresses emissions; it does not remove entries from an array inside one emission unless you map that array."
+        ],
+        "whenNotToUse": [
+          "Do not use tap to transform values that downstream consumers depend upon.",
+          "Do not put long business workflows or writes inside arbitrary logging tap callbacks.",
+          "Do not use client-side filter for access control or financial truth."
+        ],
+        "alternatives": [
+          {
+            "name": "Native array map/filter",
+            "bestFor": "Synchronous, already-available in-memory arrays",
+            "tradeoff": "Not a stream of values over time"
+          },
+          {
+            "name": "computed() signal",
+            "bestFor": "Derived state from synchronous reactive sources",
+            "tradeoff": "Not a replacement for event-stream operators"
+          },
+          {
+            "name": "Imperative subscribe handler",
+            "bestFor": "Very small one-off sink",
+            "tradeoff": "Transformation and effects become tangled with rendering"
+          }
+        ],
+        "testing": {
+          "strategy": "Run the sample in the declared runtime, write behavioral assertions using fake time or controlled test streams when relevant, and distinguish syntax checks from Angular template compilation and browser execution.",
+          "testCases": [
+            {
+              "case": "Filter result",
+              "expected": "Only paid order records reach subscriber."
+            },
+            {
+              "case": "Map result",
+              "expected": "Output labels contain order IDs and minor-unit values."
+            },
+            {
+              "case": "Tap identity",
+              "expected": "Downstream values are unchanged by diagnostic tap."
+            }
+          ],
+          "negativeCases": [
+            "Check changing operator order does not silently alter the business result.",
+            "Check missing authorization remains blocked by the server, not by a filter operator."
+          ],
+          "verificationCommand": "npx tsx order-operators.ts"
+        },
+        "followUps": {
+          "beginner": [
+            "What is the difference between map and tap?"
+          ],
+          "intermediate": [
+            "Why are nested subscriptions difficult to maintain?"
+          ],
+          "advanced": [
+            "When would switchMap or concatMap replace a manual nested subscribe?"
+          ],
+          "expert": [
+            "How would you ensure a complex shared pipeline does not duplicate writes when subscribers increase?"
+          ]
+        },
+        "finalTakeaway": "Prefer declarative pipelines: filter selects, map transforms, tap observes, and subscription consumes."
+      },
+      "learningOutcomes": [
+        "Explain core rxjs operators clearly and distinguish related APIs.",
+        "Implement or trace the example of question 33 and state its expected behavior.",
+        "Identify a production anti-pattern and propose a safer alternative."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://rxjs.dev/guide/observable",
+          "https://rxjs.dev/guide/subject",
+          "https://rxjs.dev/api/operators",
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Concepts cross-checked against public Angular and RxJS references. TypeScript transpilation performed locally; Angular template compilation and Mermaid browser rendering are not claimed unless tested separately."
+      }
+    },
+    {
+      "id": "ANG-BEG-034",
+      "sequence": 34,
+      "difficulty": "beginner",
+      "domain": "RxJS Fundamentals and Angular Signals",
+      "topic": "Angular Signals fundamentals",
+      "question": "What are Angular Signals? Explain signal(), computed(), and how they differ from Observables.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "saas",
+        "healthcare"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "computed",
+        "derived-state",
+        "rxjs-interop",
+        "rxjs-signals",
+        "signal",
+        "signals"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Signals hold reactive values; computed signals derive cached results."
+        },
+        "motivation": {
+          "whyIntroduced": "Angular components frequently need a synchronous, readable current value with automatic UI invalidation. Signals provide fine-grained reactive state tracking and memoized derivations without requiring every local state read to be subscribed to as an asynchronous event stream.",
+          "historicalNote": "Angular Signals were introduced in modern Angular and are complementary to RxJS. An Observable can represent a temporal sequence of notifications, while a Signal always represents a current value read by calling it. Angular provides toSignal/toObservable interop."
+        },
+        "problemSolved": {
+          "before": "A dashboard stores subtotal and tax in separately maintained variables, which can drift when the cart changes.",
+          "after": "Store cart items in a writable signal and compute subtotal and item count from that source; Angular tracks the dependencies of rendered computed values.",
+          "benefits": [
+            "Synchronous access to current state",
+            "Memoized and lazy derived computations",
+            "Automatic dependency tracking during reactive reads",
+            "Straightforward rendering in Angular templates"
+          ]
+        },
+        "characteristics": [
+          "A writable signal is read by invoking it and updated with set() or update().",
+          "computed() returns a read-only, lazily evaluated, memoized Signal whose dependencies are tracked dynamically.",
+          "Signals compare values with Object.is by default unless a different equality is configured; deep object mutation is not automatically detected.",
+          "Effects are intended mainly for synchronizing with imperative APIs, not for copying one signal into another.",
+          "Signals and RxJS interoperate, but Signals do not natively model each event in a time-ordered async stream."
+        ],
+        "simpleAnalogy": {
+          "title": "Thermostat and derived comfort indicator",
+          "explanation": "A thermostat shows the current temperature (signal), and a calculated comfort category depends on that reading (computed). An event log records every temperature change over time (Observable-like stream)."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A shopping cart must display a current item count and subtotal while users change quantities.",
+          "implementation": "Keep line items in a signal and derive the count and subtotal with computed. Use a backend API for price and inventory validation at checkout, not the client subtotal as financial authority.",
+          "businessImpact": "Cart summaries stay internally consistent without manual synchronization of multiple derived fields.",
+          "importantConstraint": "Currency values should be represented in minor units or an appropriate decimal model; frontend totals are previews, not authoritative checkout pricing."
+        },
+        "useCases": [
+          "Local component state and template reactivity",
+          "Derived counts, sums and selected-tab labels",
+          "Feature state exposed as read-only signals",
+          "Bridging a subscription stream to view state via toSignal()"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Component creates a writable items signal",
+            "Template reads itemCount() and subtotalMinor() computed signals",
+            "User adds another line item using update() with a new array reference",
+            "Angular invalidates dependent computed caches",
+            "Next template read re-evaluates computed values and renders new totals"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-034-flow",
+              "type": "flowchart",
+              "title": "Angular Signals fundamentals: end-to-end flow",
+              "mermaid": "flowchart TD\n    A[User changes quantity] --> B[items.update creates new array]\n    B --> C[Writable items signal]\n    C --> D[computed itemCount]\n    C --> E[computed subtotalMinor]\n    D --> F[Angular template]\n    E --> F",
+              "caption": "Educational example; domain authorization and persisted system state remain server responsibilities."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "cart-summary.component.ts",
+          "runtime": "Angular 17+ standalone component; requires @angular/core, @angular/forms and rxjs in an Angular workspace.",
+          "code": "// FILE: cart-summary.component.ts\nimport { Component, computed, signal } from '@angular/core';\n\ntype LineItem = Readonly<{ sku: string; quantity: number; unitPriceMinor: number }>;\n\n@Component({\n  selector: 'app-cart-summary',\n  standalone: true,\n  template: `\n    <h2>Demo cart</h2>\n    <p>Units: {{ itemCount() }}</p>\n    <p>Subtotal (minor units): {{ subtotalMinor() }}</p>\n    <button (click)=\"addOne()\">Add one sample item</button>\n  `\n})\nexport class CartSummaryComponent {\n  readonly items = signal<readonly LineItem[]>([\n    { sku: 'BOOK-1', quantity: 1, unitPriceMinor: 1250 }\n  ]);\n  readonly itemCount = computed(() =>\n    this.items().reduce((sum, item) => sum + item.quantity, 0)\n  );\n  readonly subtotalMinor = computed(() =>\n    this.items().reduce((sum, item) => sum + item.quantity * item.unitPriceMinor, 0)\n  );\n\n  addOne(): void {\n    this.items.update(items => items.map(item =>\n      item.sku === 'BOOK-1' ? { ...item, quantity: item.quantity + 1 } : item\n    ));\n  }\n}\n",
+          "explanation": [
+            "items is a writable Signal containing immutable-in-practice line items.",
+            "itemCount and subtotalMinor are computed; their functions only read state and calculate derived values.",
+            "addOne creates new object and array references instead of mutating the array in place.",
+            "The template reads signals with parentheses. A real checkout must revalidate every price and available quantity on the server."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would implement the E-Commerce cart summary with signals and add tests proving displayed counts and totals change after quantity updates.",
+          "evidenceToCollect": [
+            "A working cart component screenshot before/after click",
+            "A unit test checking subtotal changes from 1250 to 2500 minor units",
+            "A server-side checkout test demonstrating client prices are not trusted"
+          ],
+          "doNotClaim": "This is a proposed learning-project narrative. Do not claim it is deployed, used by customers, or previously implemented unless evidence exists."
+        },
+        "pitfalls": [
+          "Mutating an array or object held by a signal without set/update may not trigger consumers.",
+          "Computed values are not writable; try updating their source signals instead.",
+          "Using effect() to propagate derived state can produce cycles or unnecessary work.",
+          "Signals hold latest state; they do not preserve every intermediate change as an event log.",
+          "Repeated toSignal() calls can create repeated subscriptions; create once and reuse."
+        ],
+        "whenNotToUse": [
+          "Do not use a Signal to replace all RxJS event streams and HTTP orchestration by default.",
+          "Do not use effect to mirror another signal when computed directly represents the derivation.",
+          "Do not treat client-side subtotal as authoritative order pricing."
+        ],
+        "alternatives": [
+          {
+            "name": "BehaviorSubject",
+            "bestFor": "Existing RxJS service needing both current value and multicasting",
+            "tradeoff": "Requires subscriptions or interop to read in templates conveniently"
+          },
+          {
+            "name": "Observable pipeline",
+            "bestFor": "Cancellation, events over time and async composition",
+            "tradeoff": "Does not inherently expose synchronous current value"
+          },
+          {
+            "name": "Ordinary component field",
+            "bestFor": "Nonreactive fixed configuration or simple local data",
+            "tradeoff": "No automatic signal dependency tracking"
+          }
+        ],
+        "testing": {
+          "strategy": "Run the sample in the declared runtime, write behavioral assertions using fake time or controlled test streams when relevant, and distinguish syntax checks from Angular template compilation and browser execution.",
+          "testCases": [
+            {
+              "case": "Initial derivation",
+              "expected": "One item yields count 1 and subtotal 1250."
+            },
+            {
+              "case": "Update derivation",
+              "expected": "Clicking add-one yields count 2 and subtotal 2500."
+            },
+            {
+              "case": "Read-only derivation",
+              "expected": "Computed Signal cannot be assigned through set()."
+            }
+          ],
+          "negativeCases": [
+            "Test replacing versus mutating array reference.",
+            "Assert pricing is revalidated on the backend before order acceptance."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "How do you update a writable signal?"
+          ],
+          "intermediate": [
+            "What is the difference between computed and effect?"
+          ],
+          "advanced": [
+            "How do toSignal and toObservable handle timing and teardown?"
+          ],
+          "expert": [
+            "How would you structure Signals and RxJS in an SSR-safe, tenant-aware state boundary?"
+          ]
+        },
+        "finalTakeaway": "Use Signals for reactive current state and computed derivations; keep RxJS for event-stream orchestration."
+      },
+      "learningOutcomes": [
+        "Explain angular signals fundamentals clearly and distinguish related APIs.",
+        "Implement or trace the example of question 34 and state its expected behavior.",
+        "Identify a production anti-pattern and propose a safer alternative."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://rxjs.dev/guide/observable",
+          "https://rxjs.dev/guide/subject",
+          "https://rxjs.dev/api/operators",
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Concepts cross-checked against public Angular and RxJS references. TypeScript transpilation performed locally; Angular template compilation and Mermaid browser rendering are not claimed unless tested separately."
+      }
+    },
+    {
+      "id": "ANG-BEG-035",
+      "sequence": 35,
+      "difficulty": "beginner",
+      "domain": "RxJS Fundamentals and Angular Signals",
+      "topic": "Debounced search with RxJS",
+      "question": "Implement a search input using debounceTime, distinctUntilChanged and switchMap.",
+      "questionType": "coding",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "ecommerce",
+        "healthcare",
+        "logistics"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "debouncetime",
+        "distinctuntilchanged",
+        "httpclient",
+        "rxjs",
+        "rxjs-signals",
+        "search",
+        "switchmap"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Debounced search waits, ignores repeats, and switches requests safely."
+        },
+        "motivation": {
+          "whyIntroduced": "A request on every keystroke overloads search APIs and can render results for stale queries. Debouncing limits bursts, distinctUntilChanged avoids consecutive duplicate search terms, and switchMap switches to the newest inner Observable so previous response emissions cannot overwrite newer results.",
+          "historicalNote": "switchMap unsubscribes from the previous inner subscription when a new source value arrives. HttpClient may abort an in-flight request on unsubscribe, but cancellation is not a guarantee that server work or already-committed effects are undone."
+        },
+        "problemSolved": {
+          "before": "Typing B, BO, BOO triggers three requests, and a slow response for B can overwrite fresh results for BOO.",
+          "after": "Normalize input, wait 300ms of inactivity, ignore repeated queries, and switch the latest query to a typed read-only product search request.",
+          "benefits": [
+            "Limits request frequency during typing bursts",
+            "Avoids consecutive duplicate searches",
+            "Prevents older subscribed results from overwriting latest search output",
+            "Makes loading, error and empty-result behavior explicit"
+          ]
+        },
+        "characteristics": [
+          "debounceTime(300) emits after a 300ms period without another source emission.",
+          "distinctUntilChanged() compares consecutive emitted values with strict equality by default.",
+          "switchMap() unsubscribes from the previous inner Observable when a newer query arrives.",
+          "catchError inside switchMap preserves the outer input stream after a failed request.",
+          "takeUntilDestroyed() or AsyncPipe scopes subscription lifetime; cancellation never guarantees server-side side-effect reversal."
+        ],
+        "simpleAnalogy": {
+          "title": "Librarian answering a changing request",
+          "explanation": "A librarian waits until you finish spelling a book title, ignores the same title repeated, and stops preparing an older answer when you ask about a newer title."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A shopper searches products while typing quickly on a retail storefront.",
+          "implementation": "Bind a non-nullable FormControl to the input, trim and lowercase terms, debounce, skip duplicates, and use switchMap to query an API. A mock Observable backend demonstrates success and error responses without needing a running server.",
+          "businessImpact": "Fewer wasted read requests and consistent latest-query results improve catalog usability.",
+          "importantConstraint": "The server must separately enforce query limits, input validation, search authorization where applicable, and pagination. Do not use switchMap for non-idempotent writes such as payment submission."
+        },
+        "useCases": [
+          "Product catalogs with autocomplete",
+          "Shipment finder with status term search",
+          "Clinician directory search on approved data",
+          "Search-as-you-type admin tables"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "User types several characters into a reactive FormControl",
+            "valueChanges emits input strings",
+            "map normalizes whitespace and case",
+            "debounceTime waits for an idle interval and distinctUntilChanged skips repeats",
+            "switchMap begins newest search and unsubscribes from previous search",
+            "Result Observable emits matching products or a handled error-state fallback",
+            "AsyncPipe updates the Angular template and unsubscribes on teardown"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-035-flow",
+              "type": "sequence",
+              "title": "Debounced search with RxJS: end-to-end flow",
+              "mermaid": "sequenceDiagram\n    actor U as Shopper\n    participant F as Angular FormControl\n    participant O as RxJS Pipeline\n    participant A as Search API\n    participant V as Results UI\n    U->>F: Type b\n    U->>F: Type bo\n    U->>F: Type book\n    F->>O: valueChanges events\n    Note over O: debounceTime + distinctUntilChanged\n    O->>A: search(book)\n    U->>F: Type books\n    O-->>A: Unsubscribe previous observable\n    O->>A: search(books)\n    A-->>O: latest matches\n    O-->>V: display latest results",
+              "caption": "Educational example; domain authorization and persisted system state remain server responsibilities."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "product-search.component.ts",
+          "runtime": "Angular 17+ standalone component; requires @angular/core, @angular/forms and rxjs in an Angular workspace.",
+          "code": "// FILE: product-search.component.ts\nimport { AsyncPipe } from '@angular/common';\nimport { Component, inject, Injectable } from '@angular/core';\nimport { FormControl, ReactiveFormsModule } from '@angular/forms';\nimport { catchError, debounceTime, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';\n\ninterface Product { readonly id: string; readonly name: string; }\n\n@Injectable({ providedIn: 'root' })\nexport class ProductSearchService {\n  private readonly products: readonly Product[] = [\n    { id: '1', name: 'Bookstand' }, { id: '2', name: 'Notebook' },\n    { id: '3', name: 'Desk lamp' }\n  ];\n\n  search(term: string) {\n    // Replace this mock with HttpClient.get<Product[]>(...) in production.\n    return of(this.products.filter(p => p.name.toLowerCase().includes(term)));\n  }\n}\n\n@Component({\n  selector: 'app-product-search', standalone: true,\n  imports: [ReactiveFormsModule, AsyncPipe],\n  template: `\n    <label for=\"query\">Find products</label>\n    <input id=\"query\" type=\"search\" [formControl]=\"query\" />\n    @if (results$ | async; as results) {\n      @if (results.length === 0) { <p>No matching products</p> }\n      <ul>\n        @for (product of results; track product.id) {\n          <li>{{ product.name }}</li>\n        }\n      </ul>\n    }\n  `\n})\nexport class ProductSearchComponent {\n  private readonly api = inject(ProductSearchService);\n  readonly query = new FormControl('', { nonNullable: true });\n  readonly results$ = this.query.valueChanges.pipe(\n    startWith(this.query.value),\n    map(value => value.trim().toLowerCase()),\n    debounceTime(300),\n    distinctUntilChanged(),\n    switchMap(term => this.api.search(term).pipe(\n      catchError(error => {\n        console.error('Search failed', error);\n        return of([] as Product[]);\n      })\n    ))\n  );\n}\n",
+          "explanation": [
+            "The input is bound to a non-nullable FormControl so valueChanges emits strings.",
+            "startWith seeds an initial query; debounceTime applies to the initial emission too.",
+            "map normalizes before distinctUntilChanged so differences in case/space do not trigger duplicate searches.",
+            "switchMap ensures that only results from the latest active inner subscription reach the template.",
+            "The sample mock emits synchronously when subscribed; replace it with typed HttpClient calls for an actual network-backed demo.",
+            "catchError is inside switchMap, keeping subsequent keystrokes usable after one request fails; the sample renders an empty list on error."
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "I would implement this search feature in the E-Commerce practice project, then replace the mock with HttpClient and test stale-response prevention using controlled request delays.",
+          "evidenceToCollect": [
+            "A demo showing search normalization and debouncing",
+            "An HttpTestingController test proving old requests are cancelled/ignored",
+            "A component test showing empty-state rendering and recovery after a failed request"
+          ],
+          "doNotClaim": "This is a proposed learning-project narrative. Do not claim it is deployed, used by customers, or previously implemented unless evidence exists."
+        },
+        "pitfalls": [
+          "Without debouncing, every keystroke can trigger costly requests.",
+          "Putting catchError outside switchMap can terminate the whole input search stream after an error.",
+          "switchMap is often inappropriate for writes; unsubscribing a submitted payment request does not undo the payment.",
+          "The mock data search can hide issues such as server pagination, latency and rate limits.",
+          "AsyncPipe cleans up the template subscription, but shared service streams may still require explicit lifecycle ownership."
+        ],
+        "whenNotToUse": [
+          "Never use switchMap for payment, order creation or other writes that must not be silently superseded.",
+          "Do not trust client-side search filtering to enforce sensitive-data permissions.",
+          "Do not add debounce to every action; button submissions may need immediate handling and distinct coordination."
+        ],
+        "alternatives": [
+          {
+            "name": "concatMap",
+            "bestFor": "Writes that must be serialized in order",
+            "tradeoff": "Later work waits behind earlier work"
+          },
+          {
+            "name": "exhaustMap",
+            "bestFor": "Ignore subsequent triggers while one operation runs",
+            "tradeoff": "Can discard desired later actions"
+          },
+          {
+            "name": "mergeMap",
+            "bestFor": "Independent concurrent operations",
+            "tradeoff": "Responses may arrive out of order"
+          },
+          {
+            "name": "Signal plus toObservable",
+            "bestFor": "Signal-driven search input with RxJS request pipeline",
+            "tradeoff": "Interop effects introduce scheduling nuances"
+          }
+        ],
+        "testing": {
+          "strategy": "Run the sample in the declared runtime, write behavioral assertions using fake time or controlled test streams when relevant, and distinguish syntax checks from Angular template compilation and browser execution.",
+          "testCases": [
+            {
+              "case": "Debounce",
+              "expected": "Only one search happens for rapid typing within 300ms."
+            },
+            {
+              "case": "Duplicate normalization",
+              "expected": "\"Book\" followed by \" book \" does not retrigger the same normalized term."
+            },
+            {
+              "case": "Latest response",
+              "expected": "A late response from an obsolete search never replaces the latest results."
+            },
+            {
+              "case": "Error recovery",
+              "expected": "A failed API search still allows a later valid search."
+            }
+          ],
+          "negativeCases": [
+            "Check an empty query produces the intentionally defined result (all mocked products here); production may choose otherwise.",
+            "Verify backend query parameter encoding, pagination, authorization and rate limiting."
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What does debounceTime do?"
+          ],
+          "intermediate": [
+            "Why is catchError placed inside switchMap?"
+          ],
+          "advanced": [
+            "What changes for a search endpoint with cursor-based pagination and stale cache entries?"
+          ],
+          "expert": [
+            "How would you design search cancellation, caching, telemetry and tenant-level rate limits at enterprise scale?"
+          ]
+        },
+        "finalTakeaway": "Debounce typing, normalize inputs, switch only read requests, and preserve error recovery within the stream."
+      },
+      "learningOutcomes": [
+        "Explain debounced search with rxjs clearly and distinguish related APIs.",
+        "Implement or trace the example of question 35 and state its expected behavior.",
+        "Identify a production anti-pattern and propose a safer alternative."
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://rxjs.dev/guide/observable",
+          "https://rxjs.dev/guide/subject",
+          "https://rxjs.dev/api/operators",
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/guide/signals/rxjs-interop"
+        ],
+        "verificationScope": "Concepts cross-checked against public Angular and RxJS references. TypeScript transpilation performed locally; Angular template compilation and Mermaid browser rendering are not claimed unless tested separately."
+      }
+    }
+  ]
+}

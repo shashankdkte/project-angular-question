@@ -1,0 +1,1055 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataset": "angular-fullstack-industry-mastery",
+  "batch": {
+    "id": "beginner-05",
+    "difficulty": "beginner",
+    "questionRange": {
+      "start": 21,
+      "end": 25
+    },
+    "questionCount": 5,
+    "curriculumVersion": "2.0"
+  },
+  "answerSectionOrder": [
+    "definition",
+    "motivation",
+    "problemSolved",
+    "characteristics",
+    "simpleAnalogy",
+    "industryExample",
+    "useCases",
+    "endToEndFlow",
+    "codeExample",
+    "projectExperience",
+    "pitfalls",
+    "whenNotToUse",
+    "alternatives",
+    "testing",
+    "followUps"
+  ],
+  "questions": [
+    {
+      "id": "ANG-BEG-021",
+      "sequence": 21,
+      "difficulty": "beginner",
+      "domain": "Templates, Directives and Pipes",
+      "topic": "Data binding and two-way binding",
+      "question": "What are interpolation, property binding, event binding and two-way binding?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "and",
+        "angular",
+        "beginner",
+        "binding",
+        "data",
+        "templates",
+        "two",
+        "way"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Angular bindings synchronize component values with interactive templates safely."
+        },
+        "motivation": {
+          "whyIntroduced": "Raw DOM updates and event wiring spread presentation logic across imperative code; Angular introduced declarative template bindings so views react to component state and user actions flow back through explicit handlers.",
+          "historicalNote": "Interpolation {{ }}, property [property], event (event) and two-way [(ngModel)] are distinct syntaxes; two-way binding with ngModel requires FormsModule. Modern Angular also supports model() for component two-way binding."
+        },
+        "problemSolved": {
+          "before": "Without binding, code might locate a button by ID, set its text and register listeners manually, making view logic brittle.",
+          "after": "Angular updates DOM text/properties from expressions and routes DOM events into component logic; two-way form binding combines input and change propagation.",
+          "benefits": [
+            "Less manual DOM manipulation",
+            "Clear data-flow direction",
+            "Type-checked templates and declarative interaction"
+          ]
+        },
+        "characteristics": [
+          "Interpolation {{ expression }} renders string-like text content and escapes untrusted HTML rather than inserting executable markup.",
+          "Property binding [disabled] assigns to the DOM property rather than the literal HTML attribute.",
+          "Event binding (click) executes a component-side statement when that event occurs; $event exposes the event object.",
+          "Two-way binding [(ngModel)] typically links form control value and a component property and requires FormsModule.",
+          "Component two-way binding can use model(); not every application needs two-way bindings."
+        ],
+        "simpleAnalogy": {
+          "title": "Display panel and remote control",
+          "explanation": "A display panel shows the current setting (interpolation). A switch receives the enabled state (property binding). Pressing the remote produces an event. A two-way control both shows and changes a setting."
+        },
+        "industryExample": {
+          "industry": "banking",
+          "scenario": "A fictional banking transfer form allows a user to enter a nickname for a saved payee and submit an action.",
+          "implementation": "Use [(ngModel)] for a nickname field, {{ nickname }} for a preview, [disabled] for the button when the nickname is blank, and (click) to respond to the user action. The UI does not execute a real bank transfer.",
+          "businessImpact": "Consistent input/preview behavior makes editing faster and reduces accidental empty submissions.",
+          "importantConstraint": "Client validation and disabled buttons are convenience controls, not permission checks or financial business-rule enforcement; backend validation is mandatory."
+        },
+        "useCases": [
+          "A live search or profile preview",
+          "Enabling/disabling submit actions from component state",
+          "Reacting to buttons, checkbox changes and keyboard input",
+          "Simple template-driven form fields",
+          "Two-way custom form-like components via model()"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Angular creates the component with nickname initialized to an empty string",
+            "The input receives its initial value through ngModel",
+            "User types a nickname and ngModel updates the component property",
+            "Interpolation renders a preview and [disabled] reevaluates",
+            "User clicks Save and the handler records a local confirmation",
+            "For a real flow, submit the value to an authenticated, validated API"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-021-flow",
+              "type": "sequence",
+              "title": "Data binding and two-way binding: end-to-end learning flow",
+              "mermaid": "sequenceDiagram\n    actor U as User\n    participant T as Angular Template\n    participant C as Component\n    participant A as Backend API\n    C->>T: Bind nickname and disabled state\n    U->>T: Type nickname\n    T->>C: ngModel change updates nickname\n    C-->>T: Interpolate preview and reevaluate disabled\n    U->>T: Click Save\n    T->>C: Invoke save() event handler\n    C-->>T: Show local confirmation\n    Note over C,A: Real saves require an authorized backend request",
+              "caption": "Illustrative training workflow; the UI does not establish backend trust or authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "payee-nickname.component.ts",
+          "runtime": "Angular 17+ standalone component; import FormsModule; drop into an Angular CLI project.",
+          "code": "// FILE: payee-nickname.component.ts\nimport { Component } from '@angular/core';\nimport { FormsModule } from '@angular/forms';\n\n@Component({\n  selector: 'app-payee-nickname',\n  standalone: true,\n  imports: [FormsModule],\n  template: `\n    <label for=\"nickname\">Saved payee nickname</label>\n    <input id=\"nickname\" name=\"nickname\"\n           [(ngModel)]=\"nickname\" maxlength=\"40\" />\n    <p>Preview: {{ nickname || 'No nickname yet' }}</p>\n    <button type=\"button\" [disabled]=\"!nickname.trim()\"\n            (click)=\"save()\">Save nickname locally</button>\n    @if (saved) { <p role=\"status\">Nickname saved in component state.</p> }\n  `\n})\nexport class PayeeNicknameComponent {\n  nickname = '';\n  saved = false;\n\n  save(): void {\n    this.saved = this.nickname.trim().length > 0;\n  }\n}\n",
+          "explanation": [
+            "[(ngModel)] provides initial control value and listens for user edits",
+            "{{ nickname }} renders the current value in the preview",
+            "[disabled] prevents ordinary empty-string submissions in the UI",
+            "(click) invokes the save handler; it does not send HTTP requests",
+            "No private data or financial records are transmitted in this isolated example"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a banking practice app, I would implement a payee-nickname editor and demonstrate four binding styles while keeping persistence behind a separately tested API.",
+          "evidenceToCollect": [
+            "Commit containing the component and a screenshot of preview updates",
+            "Component test proving button disabled/enabled behavior",
+            "Documented backend API validation once persistence is introduced"
+          ],
+          "doNotClaim": "This is a proposed practice-project implementation; do not claim production deployment, customer usage or measured performance until independently demonstrated."
+        },
+        "pitfalls": [
+          "Confusing [value] (one-way) with [(ngModel)] (two-way) leads to unsynchronized edits",
+          "Forgetting FormsModule produces an unknown binding/directive error",
+          "Property binding [disabled] and attribute binding [attr.aria-label] have different semantics",
+          "Interpolated input is escaped, but bypassing sanitization or writing directly to innerHTML can introduce XSS",
+          "Two-way binding is not a substitute for explicit state ownership in complex applications"
+        ],
+        "whenNotToUse": [
+          "Do not use two-way binding as a universal cross-feature state store",
+          "Do not bind directly to mutating calculations or side-effecting methods in templates",
+          "Do not treat [disabled] as an authorization or tamper-proof business constraint"
+        ],
+        "alternatives": [
+          {
+            "name": "Reactive Forms",
+            "bestFor": "Complex validation, dynamic fields and explicit control state",
+            "tradeoff": "More setup and a different form model than ngModel"
+          },
+          {
+            "name": "One-way [value] and (input)",
+            "bestFor": "A custom controlled input with explicit transformations",
+            "tradeoff": "You must manually keep state and event updates consistent"
+          },
+          {
+            "name": "model() inputs",
+            "bestFor": "Two-way state communication between Angular components",
+            "tradeoff": "Shares a writable value contract that can overcouple non-form components"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed with component fixtures for rendered DOM and event assertions; run an Angular build to check templates; add browser tests for keyboard and interaction behavior.",
+          "testCases": [
+            {
+              "case": "Initial rendering",
+              "expected": "The preview reads No nickname yet and Save is disabled"
+            },
+            {
+              "case": "User types a nickname",
+              "expected": "Preview reflects the text and Save becomes enabled"
+            },
+            {
+              "case": "Click Save",
+              "expected": "A status message confirms only local component-state change"
+            }
+          ],
+          "negativeCases": [
+            "Whitespace-only input must keep Save disabled",
+            "Never mistake client-side disabled state for a secure backend business rule"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "When would you write {{ value }} instead of [value]?"
+          ],
+          "intermediate": [
+            "What changes when a component exposes model() rather than input()/output()?"
+          ],
+          "advanced": [
+            "What are the security implications of binding unsafe HTML?"
+          ],
+          "expert": [
+            "How do template binding and change detection behave in a zoneless application?"
+          ]
+        },
+        "finalTakeaway": "Use the simplest binding that matches the direction of data flow; keep business enforcement server-side."
+      },
+      "learningOutcomes": [
+        "Identify four binding forms and their syntax",
+        "Show two-way input with FormsModule",
+        "Separate UI behavior from backend validation"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/templates/binding",
+          "https://angular.dev/guide/templates/two-way-binding"
+        ],
+        "verificationScope": "Checked Angular API patterns against official documentation; TypeScript syntax/transpilation validated locally. Full Angular template compilation and browser execution not performed in this environment."
+      }
+    },
+    {
+      "id": "ANG-BEG-022",
+      "sequence": 22,
+      "difficulty": "beginner",
+      "domain": "Templates, Directives and Pipes",
+      "topic": "Built-in template control flow",
+      "question": "How do @if, @for and @switch work in Angular templates?",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "built",
+        "control",
+        "flow",
+        "in",
+        "template",
+        "templates"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Control flow blocks conditionally render, repeat, and select views."
+        },
+        "motivation": {
+          "whyIntroduced": "Production interfaces must show conditional branches, repeated records and state-dependent content. Angular added built-in block control-flow syntax in v17 to express these patterns directly in templates with clear locality and predictable list identity.",
+          "historicalNote": "Older apps commonly use *ngIf, *ngFor and [ngSwitch]. New @if/@for/@switch syntax is built into Angular templates and does not require importing CommonModule solely for those control-flow blocks."
+        },
+        "problemSolved": {
+          "before": "Without structured control flow, developers manually create/remove DOM or scatter competing boolean conditions throughout markup.",
+          "after": "@if chooses a truthy branch, @for repeats items and tracks view identity, and @switch selects a matching case without fallthrough.",
+          "benefits": [
+            "Clear conditional branches",
+            "Efficient list updates through tracking keys",
+            "One canonical state-driven view instead of manual DOM manipulation"
+          ]
+        },
+        "characteristics": [
+          "@if / @else if / @else show branches according to template expressions.",
+          "@for (item of items; track item.id) requires a tracking expression; stable IDs are ideal for changing collections.",
+          "@empty is the native empty-list branch for @for, avoiding a separate length conditional.",
+          "@switch and @case compare case values strictly and do not fall through.",
+          "Built-in control-flow blocks are template syntax, not directives and not HTML elements."
+        ],
+        "simpleAnalogy": {
+          "title": "Train station departure board",
+          "explanation": "A board hides cancelled platforms (@if), lists departures (@for), and chooses one status message per train (@switch). Tracking a train ID keeps the right row attached to the right train when departure order changes."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "A logistics dashboard displays shipment cards and status labels while a carrier is delivering updates.",
+          "implementation": "Use @if for loading, @for with track shipment.id to render cards and @empty for empty results; use @switch to select status text for pending/in-transit/delivered shipments.",
+          "businessImpact": "Operations staff see the correct row as shipments are added or reordered, and empty data has a meaningful message.",
+          "importantConstraint": "A visual status is not proof of delivery; authoritative shipment state must come from validated backend events and the model must use stable identifiers."
+        },
+        "useCases": [
+          "Search results and product listings",
+          "Loading, error and empty states",
+          "Status badges and role-dependent views",
+          "Shipment and appointment lists that reorder",
+          "Showing mutually exclusive screen modes"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Component receives a collection of shipment view models",
+            "Angular evaluates loading flag and branches to loading content or list",
+            "@for iterates the collection using shipment.id as identity",
+            "@switch renders one status description per shipment",
+            "When the array changes, Angular reuses matching DOM views by key",
+            "@empty renders if the collection has no rows"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-022-flow",
+              "type": "flowchart",
+              "title": "Built-in template control flow: end-to-end learning flow",
+              "mermaid": "flowchart TD\n    A[Component state updates] --> B{Loading?}\n    B -->|Yes| C[Show loading status]\n    B -->|No| D{Any shipments?}\n    D -->|No| E[Show empty message]\n    D -->|Yes| F[for each shipment tracked by ID]\n    F --> G{Shipment status}\n    G -->|pending| H[Show Pending]\n    G -->|in-transit| I[Show In transit]\n    G -->|delivered| J[Show Delivered]",
+              "caption": "Illustrative training workflow; the UI does not establish backend trust or authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shipment-list.component.ts",
+          "runtime": "Angular 17+ with built-in control flow; no CommonModule needed for @if/@for/@switch.",
+          "code": "// FILE: shipment-list.component.ts\nimport { Component, signal } from '@angular/core';\n\ntype ShipmentStatus = 'pending' | 'in-transit' | 'delivered';\ninterface Shipment { id: string; label: string; status: ShipmentStatus; }\n\n@Component({\n  selector: 'app-shipment-list',\n  standalone: true,\n  template: `\n    <h2>Shipments</h2>\n    @if (loading()) {\n      <p role=\"status\">Loading shipments...</p>\n    } @else {\n      <ul>\n        @for (shipment of shipments(); track shipment.id) {\n          <li>\n            {{ shipment.label }} —\n            @switch (shipment.status) {\n              @case ('pending') { Pending pickup }\n              @case ('in-transit') { On the way }\n              @case ('delivered') { Delivered }\n            }\n          </li>\n        } @empty {\n          <li>No shipments to show.</li>\n        }\n      </ul>\n    }\n  `\n})\nexport class ShipmentListComponent {\n  readonly loading = signal(false);\n  readonly shipments = signal<Shipment[]>([\n    { id: 's-101', label: 'Parcel 101', status: 'pending' },\n    { id: 's-102', label: 'Parcel 102', status: 'in-transit' }\n  ]);\n}\n",
+          "explanation": [
+            "loading() selects the loading branch",
+            "@for renders each shipment using its immutable ID",
+            "@switch shows one label for each known status",
+            "@empty displays a message when the collection is empty",
+            "The union type constrains possible statuses in TypeScript"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a logistics portal I would bind tracking records to a status timeline and test reordering while preserving each shipment row by ID.",
+          "evidenceToCollect": [
+            "Screenshots of loading/list/empty UI states",
+            "Component fixture test that reorders rows",
+            "API contract documenting valid shipment statuses"
+          ],
+          "doNotClaim": "This is a proposed practice-project implementation; do not claim production deployment, customer usage or measured performance until independently demonstrated."
+        },
+        "pitfalls": [
+          "track $index can make mutable lists associate the wrong DOM state with a different business record",
+          "Duplicate or changing tracking keys can cause incorrect reuse or warnings",
+          "@for does not support break or continue like JavaScript loops",
+          "Using @switch as if it supported JavaScript fallthrough gives incorrect expectations",
+          "Unrecognized status values need a fallback when backend data is not trusted"
+        ],
+        "whenNotToUse": [
+          "Do not use @for to do expensive business calculations inside each iteration",
+          "Do not use list indices as tracking keys when items can reorder or be inserted",
+          "Do not use conditional UI visibility as an authorization control"
+        ],
+        "alternatives": [
+          {
+            "name": "*ngIf, *ngFor, ngSwitch",
+            "bestFor": "Maintaining older Angular codebases",
+            "tradeoff": "Different directive imports and migration considerations"
+          },
+          {
+            "name": "Precomputed filtered view model",
+            "bestFor": "Expensive filtering and mapping logic",
+            "tradeoff": "Requires an additional derived state layer"
+          },
+          {
+            "name": "Component composition",
+            "bestFor": "Complex repeated cards needing isolated tests",
+            "tradeoff": "Adds component boundaries and inputs/outputs"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed with component fixtures for rendered DOM and event assertions; run an Angular build to check templates; add browser tests for keyboard and interaction behavior.",
+          "testCases": [
+            {
+              "case": "Loading state",
+              "expected": "Shows a loading status and not the list"
+            },
+            {
+              "case": "No results",
+              "expected": "Shows No shipments to show using @empty"
+            },
+            {
+              "case": "Data rendered",
+              "expected": "Two rows display matching status labels"
+            },
+            {
+              "case": "Reorder list",
+              "expected": "Rows remain associated with the correct shipment ID"
+            }
+          ],
+          "negativeCases": [
+            "Inject an unknown backend status and verify a safe fallback path",
+            "Add a duplicate ID and verify data validation flags the issue"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What is @empty used for?"
+          ],
+          "intermediate": [
+            "When would track $index be unsafe?"
+          ],
+          "advanced": [
+            "How do built-in blocks affect DOM reuse compared with older structural directives?"
+          ],
+          "expert": [
+            "How would you profile a virtualized list with tens of thousands of rows?"
+          ]
+        },
+        "finalTakeaway": "Use built-in control flow to make changing UI states explicit; track dynamic lists by stable identity."
+      },
+      "learningOutcomes": [
+        "Write @if/@for/@switch correctly",
+        "Explain why stable tracking is required",
+        "Describe an empty-state and fallback test"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/templates/control-flow",
+          "https://angular.dev/reference/migrations/control-flow"
+        ],
+        "verificationScope": "Checked Angular API patterns against official documentation; TypeScript syntax/transpilation validated locally. Full Angular template compilation and browser execution not performed in this environment."
+      }
+    },
+    {
+      "id": "ANG-BEG-023",
+      "sequence": 23,
+      "difficulty": "beginner",
+      "domain": "Templates, Directives and Pipes",
+      "topic": "Components versus directives",
+      "question": "What are directives? Explain attribute directives and structural directives.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "components",
+        "directives",
+        "templates",
+        "versus"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Directives attach reusable behaviors or restructure Angular template views."
+        },
+        "motivation": {
+          "whyIntroduced": "A UI frequently needs the same behavior on many elements, while conditionally adding or removing regions. Angular directives make these behaviors composable without duplicating code or wrapping every element in a new component.",
+          "historicalNote": "Classic structural directives include *ngIf and *ngFor; modern @if and @for are built-in control-flow syntax, not structural directives. Attribute directives such as NgClass or custom directives modify host appearance or behavior."
+        },
+        "problemSolved": {
+          "before": "Without directives, repeated focus styling or conditional DOM logic is implemented manually in multiple components.",
+          "after": "An attribute directive enhances an existing host element; a structural directive controls whether and how embedded views are added to a container.",
+          "benefits": [
+            "Reusable behavior across multiple host elements",
+            "Encapsulation of host interactions",
+            "Declarative attribute selector syntax"
+          ]
+        },
+        "characteristics": [
+          "An attribute directive typically adds host behavior or appearance while leaving the host element in place.",
+          "A structural directive works with templates and embedded views to add or remove DOM content.",
+          "A component is a directive with its own template and view; ordinary directives do not supply their own view.",
+          "Custom directives use @Directive metadata and can be standalone.",
+          "A structural directive using * shorthand typically expands to an ng-template; modern @if blocks are a separate language feature."
+        ],
+        "simpleAnalogy": {
+          "title": "Reusable stickers versus folding stage",
+          "explanation": "An attribute directive acts like a reusable sticker that changes how an existing sign behaves; a structural directive acts like a stage manager who decides whether an entire scene appears."
+        },
+        "industryExample": {
+          "industry": "healthcare",
+          "scenario": "A hospital scheduling application highlights the currently focused search box so keyboard users can locate input focus.",
+          "implementation": "Create an attribute directive that adds a focus highlight to native input elements and register it in a standalone component imports array.",
+          "businessImpact": "Reusable focus cues reduce repeated styles and support usability across large administrative forms.",
+          "importantConstraint": "The directive must not hide semantic focus or replace the native input; accessibility requires a visible focus indicator and usable labels."
+        },
+        "useCases": [
+          "Consistent focus styling across forms",
+          "Reusable input formatting behavior",
+          "Reusable tooltip triggers",
+          "Conditional legacy view rendering through *ngIf",
+          "Custom role-sensitive presentation that never substitutes for backend enforcement"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "The standalone component imports a custom attribute directive",
+            "Angular matches the appHighlightOnFocus attribute on an input",
+            "A focus event sets the directive active",
+            "The host binding updates the input outline for visual feedback",
+            "A blur event resets the directive state",
+            "The directive does not change input semantics or backend permissions"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-023-flow",
+              "type": "sequence",
+              "title": "Components versus directives: end-to-end learning flow",
+              "mermaid": "sequenceDiagram\n    actor U as Keyboard user\n    participant I as Native input\n    participant D as Highlight directive\n    participant R as Angular renderer\n    U->>I: Tab into search input\n    I->>D: focus event\n    D->>D: active = true\n    D->>R: Update host outline style\n    R-->>U: Visible focus cue\n    U->>I: Tab away\n    I->>D: blur event\n    D->>R: Clear directive outline override",
+              "caption": "Illustrative training workflow; the UI does not establish backend trust or authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "highlight-on-focus.directive.ts",
+          "runtime": "Angular 17+ standalone directive and component; can be split into two files as marked by class names.",
+          "code": "// FILE: highlight-on-focus.directive.ts\nimport { Component, Directive } from '@angular/core';\n\n@Directive({\n  selector: '[appHighlightOnFocus]',\n  standalone: true,\n  host: {\n    '(focus)': 'active = true',\n    '(blur)': 'active = false',\n    '[style.outline]': 'active ? \"3px solid #2563eb\" : null',\n    '[style.outlineOffset]': 'active ? \"2px\" : null'\n  }\n})\nexport class HighlightOnFocusDirective {\n  active = false;\n}\n\n@Component({\n  selector: 'app-appointment-search',\n  standalone: true,\n  imports: [HighlightOnFocusDirective],\n  template: `\n    <label for=\"patient-query\">Search appointments</label>\n    <input id=\"patient-query\" type=\"search\" appHighlightOnFocus />\n  `\n})\nexport class AppointmentSearchComponent {}\n",
+          "explanation": [
+            "@Directive identifies reusable behavior, not a new template",
+            "selector matches any element carrying appHighlightOnFocus",
+            "host listens for focus and blur and binds style properties",
+            "Native search input retains label, keyboard behavior and semantics",
+            "Directive is imported explicitly in the standalone component"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In a healthcare learning portal I would make focused form controls visually distinctive using a small reusable attribute directive, then verify keyboard behavior in a browser.",
+          "evidenceToCollect": [
+            "Component and directive code with appropriate unit tests",
+            "Keyboard navigation capture and accessibility check",
+            "Usage documentation for supported host elements"
+          ],
+          "doNotClaim": "This is a proposed practice-project implementation; do not claim production deployment, customer usage or measured performance until independently demonstrated."
+        },
+        "pitfalls": [
+          "A focus directive may clash with existing design-system focus CSS or high-contrast themes",
+          "Directly altering element.innerHTML in a directive can introduce XSS risks",
+          "Using ElementRef nativeElement unnecessarily complicates SSR and abstraction boundaries",
+          "A custom structural directive may require careful handling of embedded-view lifecycle",
+          "Confusing @if with a structural directive causes incorrect import and implementation assumptions"
+        ],
+        "whenNotToUse": [
+          "Do not create a directive when a single CSS :focus-visible rule is sufficient",
+          "Do not use directives to bypass established component accessibility behavior",
+          "Do not use a UI directive as the sole authorization enforcement"
+        ],
+        "alternatives": [
+          {
+            "name": "CSS :focus-visible",
+            "bestFor": "Simple, universal keyboard focus styling",
+            "tradeoff": "Usually simpler than a custom directive; prefer it when sufficient"
+          },
+          {
+            "name": "Component",
+            "bestFor": "Reusable visual layout and template",
+            "tradeoff": "Creates a new view boundary rather than adding behavior to existing hosts"
+          },
+          {
+            "name": "Built-in @if and @for",
+            "bestFor": "Common view conditions and repetition",
+            "tradeoff": "Cannot encapsulate arbitrary reusable custom host behavior"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed with component fixtures for rendered DOM and event assertions; run an Angular build to check templates; add browser tests for keyboard and interaction behavior.",
+          "testCases": [
+            {
+              "case": "Focus input",
+              "expected": "Outline becomes visibly emphasized"
+            },
+            {
+              "case": "Blur input",
+              "expected": "Directive style override is cleared"
+            },
+            {
+              "case": "Keyboard navigation",
+              "expected": "Input remains reachable, labelled and usable"
+            },
+            {
+              "case": "Multiple inputs",
+              "expected": "Each directive instance maintains independent active state"
+            }
+          ],
+          "negativeCases": [
+            "Check focus visibility in high-contrast and dark mode",
+            "Assert that directive does not accidentally modify input value"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "How is an attribute directive different from a component?"
+          ],
+          "intermediate": [
+            "How are structural directives implemented with TemplateRef and ViewContainerRef?"
+          ],
+          "advanced": [
+            "What SSR and security issues arise with direct DOM access?"
+          ],
+          "expert": [
+            "How would you standardize directive composition across a design system?"
+          ]
+        },
+        "finalTakeaway": "Use directives for reusable host behavior; prefer built-in templates and CSS when they suffice."
+      },
+      "learningOutcomes": [
+        "Distinguish components, attribute and structural directives",
+        "Implement a standalone directive",
+        "Test keyboard interaction and explain accessibility limitations"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/directives/attribute-directives",
+          "https://angular.dev/guide/directives/structural-directives"
+        ],
+        "verificationScope": "Checked Angular API patterns against official documentation; TypeScript syntax/transpilation validated locally. Full Angular template compilation and browser execution not performed in this environment."
+      }
+    },
+    {
+      "id": "ANG-BEG-024",
+      "sequence": 24,
+      "difficulty": "beginner",
+      "domain": "Templates, Directives and Pipes",
+      "topic": "Built-in and custom pipes",
+      "question": "What are Angular pipes? Explain built-in pipes, custom pipes and pure versus impure pipes.",
+      "questionType": "conceptual",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "and",
+        "angular",
+        "beginner",
+        "built",
+        "custom",
+        "in",
+        "pipes",
+        "templates"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Pipes transform values for presentation inside Angular templates."
+        },
+        "motivation": {
+          "whyIntroduced": "Repeated presentation formatting inside components increases duplication and mixes data representation with UI concerns. Pipes provide a concise, reusable expression for display transformations in templates.",
+          "historicalNote": "Common built-in pipes include DatePipe, CurrencyPipe, DecimalPipe and AsyncPipe. By default custom pipes are pure; impure pipes with pure:false may execute on more change-detection checks."
+        },
+        "problemSolved": {
+          "before": "Without pipes, every table or label repeats date/number/status formatting logic and may accidentally apply inconsistent labels.",
+          "after": "Built-in and custom pipes format template output; pure pipes recalculate when input values or references change, rather than on arbitrary internal mutation.",
+          "benefits": [
+            "Declarative template syntax: value | pipeName",
+            "Built-in formatters for dates, currencies, numbers and async values",
+            "Custom pipes encapsulate presentation transformations"
+          ]
+        },
+        "characteristics": [
+          "Pipes are called from templates using | and may take colon-separated arguments.",
+          "Pure pipes are the default and are reevaluated when primitive values or relevant object references change.",
+          "Impure pipes opt into more frequent reevaluation and may be expensive.",
+          "Pipe transform functions should be deterministic and free of effects; changing source business data in a pipe is an anti-pattern.",
+          "AsyncPipe handles Observable or Promise subscriptions and template values; custom status pipes normally should remain pure."
+        ],
+        "simpleAnalogy": {
+          "title": "Translator on a display screen",
+          "explanation": "A warehouse stores a raw code such as IN_TRANSIT, but a display screen translates it to On the way. A pipe is that dedicated translator; it should not alter the underlying shipment record."
+        },
+        "industryExample": {
+          "industry": "logistics",
+          "scenario": "An operations dashboard receives machine-readable shipment states from an API, but human readers need concise labels.",
+          "implementation": "Use a pure custom pipe for shipment state labels, alongside Angular built-in DatePipe for timestamps and CurrencyPipe for carrier fees.",
+          "businessImpact": "Consistent labels improve readability without changing backend state values.",
+          "importantConstraint": "Display labels must not be reused as canonical API enum values; an unknown state needs an explicit fallback."
+        },
+        "useCases": [
+          "Formatting dates and times per locale",
+          "Presenting currency amounts with proper currency codes",
+          "Mapping status enums to readable labels",
+          "Rendering Observable values with AsyncPipe",
+          "Formatting repeated dashboard summary fields"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Backend sends an authorized shipment response with a status code",
+            "Angular stores the status as a typed field",
+            "Template passes the code into shipmentStatus pipe",
+            "Pure pipe returns a human-readable label",
+            "Angular renders the result without altering the original status",
+            "If status changes, the transformed label is recalculated"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-024-flow",
+              "type": "sequence",
+              "title": "Built-in and custom pipes: end-to-end learning flow",
+              "mermaid": "sequenceDiagram\n    participant A as Shipment API\n    participant C as Angular Component\n    participant P as ShipmentStatusPipe\n    participant T as Template\n    A-->>C: status = in_transit\n    C->>T: Bind status value\n    T->>P: transform(in_transit)\n    P-->>T: On the way\n    T-->>T: Render human-readable label\n    Note over C,P: Pure pipe does not mutate the status value",
+              "caption": "Illustrative training workflow; the UI does not establish backend trust or authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "shipment-status.pipe.ts",
+          "runtime": "Angular 17+ standalone pipe and standalone component; use status codes from a validated API in real deployments.",
+          "code": "// FILE: shipment-status.pipe.ts\nimport { Component, Pipe, PipeTransform } from '@angular/core';\n\ntype ShipmentStatus = 'pending' | 'in_transit' | 'delivered';\n\n@Pipe({ name: 'shipmentStatus', standalone: true, pure: true })\nexport class ShipmentStatusPipe implements PipeTransform {\n  transform(status: ShipmentStatus | string | null): string {\n    switch (status) {\n      case 'pending': return 'Pending pickup';\n      case 'in_transit': return 'On the way';\n      case 'delivered': return 'Delivered';\n      default: return 'Status unavailable';\n    }\n  }\n}\n\n@Component({\n  selector: 'app-shipment-summary',\n  standalone: true,\n  imports: [ShipmentStatusPipe],\n  template: `<p>Shipment: {{ status | shipmentStatus }}</p>`\n})\nexport class ShipmentSummaryComponent {\n  status: ShipmentStatus = 'in_transit';\n}\n",
+          "explanation": [
+            "PipeTransform declares the transform contract",
+            "pure:true explicitly states the default pure behavior",
+            "switch maps three known statuses and provides fallback text",
+            "Component imports the pipe before using its name in template",
+            "The pipe formats display only and leaves backend data unchanged"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In the logistics project I would share one status-label pipe between the shipment list and detail screen, with a unit test for unknown states.",
+          "evidenceToCollect": [
+            "Source file implementing the pipe and component",
+            "Tests for known and unknown status codes",
+            "Screenshot confirming consistent labels across views"
+          ],
+          "doNotClaim": "This is a proposed practice-project implementation; do not claim production deployment, customer usage or measured performance until independently demonstrated."
+        },
+        "pitfalls": [
+          "An impure pipe recalculating costly logic can degrade performance",
+          "Mutating an array in place may not trigger a pure pipe expecting a changed reference",
+          "Formatting a monetary amount without currency or precision metadata may mislead users",
+          "A pipe that makes HTTP requests introduces hard-to-control side effects",
+          "A custom pipe must be imported into a standalone component before use"
+        ],
+        "whenNotToUse": [
+          "Do not use a pipe to mutate domain entities or perform API calls",
+          "Do not use impure pipes for expensive filtering or sorting in large tables",
+          "Do not treat formatted values as authoritative data for persistence or comparisons"
+        ],
+        "alternatives": [
+          {
+            "name": "Computed Signal",
+            "bestFor": "Derived state reused in component logic and templates",
+            "tradeoff": "Requires designing reactive state dependencies"
+          },
+          {
+            "name": "Component method",
+            "bestFor": "Small transformation invoked from event handler",
+            "tradeoff": "Method calls from templates may repeat during checks"
+          },
+          {
+            "name": "Built-in DatePipe/CurrencyPipe",
+            "bestFor": "Common locale-aware formats",
+            "tradeoff": "May not express domain-specific status wording"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed with component fixtures for rendered DOM and event assertions; run an Angular build to check templates; add browser tests for keyboard and interaction behavior.",
+          "testCases": [
+            {
+              "case": "Known code",
+              "expected": "in_transit renders On the way"
+            },
+            {
+              "case": "Missing or unknown code",
+              "expected": "Returns Status unavailable"
+            },
+            {
+              "case": "Data integrity",
+              "expected": "Original status property remains in_transit"
+            },
+            {
+              "case": "Standalone usage",
+              "expected": "Component imports custom pipe and template compiles"
+            }
+          ],
+          "negativeCases": [
+            "Reject a display label written back as a backend status value",
+            "Do not assume mutating an object without reference change will rerun a pure pipe"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "How do you pass parameters to a pipe?"
+          ],
+          "intermediate": [
+            "What is different about pure and impure pipe execution?"
+          ],
+          "advanced": [
+            "When would a computed Signal be preferable to a pipe?"
+          ],
+          "expert": [
+            "How do localization, caching and asynchronous rendering affect a shared format strategy?"
+          ]
+        },
+        "finalTakeaway": "Use pure pipes for reusable presentation transformations, not data mutation or side effects."
+      },
+      "learningOutcomes": [
+        "Explain built-in and custom pipe roles",
+        "Recognize pure versus impure behavior",
+        "Implement and test a safe formatting pipe"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/templates/pipes",
+          "https://angular.dev/api/common/AsyncPipe"
+        ],
+        "verificationScope": "Checked Angular API patterns against official documentation; TypeScript syntax/transpilation validated locally. Full Angular template compilation and browser execution not performed in this environment."
+      }
+    },
+    {
+      "id": "ANG-BEG-025",
+      "sequence": 25,
+      "difficulty": "beginner",
+      "domain": "Templates, Directives and Pipes",
+      "topic": "Integrated product list with filtering",
+      "question": "Create an Angular product list with search, conditional rendering, currency formatting and a reusable custom pipe.",
+      "questionType": "coding",
+      "priority": "critical",
+      "roles": [
+        "software-engineer",
+        "senior-software-engineer",
+        "technical-lead",
+        "technical-architect",
+        "solution-architect"
+      ],
+      "industries": [
+        "banking",
+        "ecommerce",
+        "healthcare",
+        "logistics",
+        "saas"
+      ],
+      "tags": [
+        "angular",
+        "beginner",
+        "filtering",
+        "integrated",
+        "list",
+        "product",
+        "templates",
+        "with"
+      ],
+      "answer": {
+        "definition": {
+          "text": "Compose reactive filters, templates, and formatting into reusable views."
+        },
+        "motivation": {
+          "whyIntroduced": "An actual application combines concepts rather than testing each syntax independently. A searchable catalog demonstrates unidirectional state flow, stable list tracking, empty results, accessible inputs and reusable presentation formatting in one feature.",
+          "historicalNote": "Use signals and computed for local derived lists, built-in @for/@if for rendering, CurrencyPipe for locale/currency presentation and a custom pure pipe for domain labels. Production catalogs later move server paging/search and authorization into APIs."
+        },
+        "problemSolved": {
+          "before": "Ad-hoc catalog components embed filtering inside template loops, repeat category labels, and handle empty results inconsistently.",
+          "after": "A computed filtered array drives a stable-tracked @for list, while built-in and custom pipes format display fields and an @empty block handles zero matches.",
+          "benefits": [
+            "Clear component ownership of search state",
+            "Readable and testable derived data",
+            "Reusable formatting and accessible result feedback"
+          ]
+        },
+        "characteristics": [
+          "Writable signal stores the search string; computed derives matching records without mutating the source array.",
+          "@for uses product.id as stable key so row identity survives filtering and reordering.",
+          "@empty presents a result-specific message rather than leaving a blank table.",
+          "CurrencyPipe handles locale-aware display when an explicit currency code is available.",
+          "A pure custom category-label pipe keeps display wording outside the domain data model."
+        ],
+        "simpleAnalogy": {
+          "title": "Library catalog search",
+          "explanation": "A library has a master shelf list, a search slip and a display card. Searching produces a view of matching books; it does not remove books from the library inventory. Label and price formatters affect the card, not the source record."
+        },
+        "industryExample": {
+          "industry": "ecommerce",
+          "scenario": "A small storefront lists products by search text, shows whether each is in stock and formats prices for shoppers.",
+          "implementation": "Create one standalone component with a query Signal, a computed filteredProducts Signal, @for with stable IDs, @empty, CurrencyPipe and a CategoryLabelPipe. Do not implement live checkout or payment handling in this demo.",
+          "businessImpact": "Shoppers find matching products quickly, see readable pricing and understand when their query matches nothing.",
+          "importantConstraint": "Client-only search suits small demo datasets; production catalogs with many SKUs need server filtering, pagination and proper price/tax/stock validation at checkout."
+        },
+        "useCases": [
+          "Local small product catalogs",
+          "Admin directory quick filters",
+          "Training project demonstrating template fundamentals",
+          "Prototype inventory search",
+          "Reusable category or order-status formatting"
+        ],
+        "endToEndFlow": {
+          "steps": [
+            "Product catalog is initialized as a typed local array",
+            "User updates the search input, producing an input event",
+            "Search query Signal changes and filteredProducts computed reevaluates",
+            "@if optionally shows the active query; @for renders matching product cards",
+            "Each card uses CurrencyPipe and custom CategoryLabelPipe",
+            "@empty renders when no products match",
+            "A real app would request paginated results from a catalog API and revalidate price at checkout"
+          ],
+          "diagrams": [
+            {
+              "id": "ANG-BEG-025-flow",
+              "type": "sequence",
+              "title": "Integrated product list with filtering: end-to-end learning flow",
+              "mermaid": "sequenceDiagram\n    actor U as Shopper\n    participant I as Search input\n    participant S as Query Signal\n    participant C as computed filteredProducts\n    participant T as Angular template\n    participant P as Formatting pipes\n    U->>I: Type search query\n    I->>S: query.set(value)\n    S->>C: Invalidate derived filter\n    C-->>T: Matching product objects\n    T->>P: Format currency and category\n    P-->>T: User-facing labels\n    T-->>U: Updated product rows or empty state",
+              "caption": "Illustrative training workflow; the UI does not establish backend trust or authorization."
+            }
+          ]
+        },
+        "codeExample": {
+          "language": "typescript",
+          "filename": "product-catalog.component.ts",
+          "runtime": "Angular 17+ standalone component; configure a locale as needed; requires Angular CommonModule package for CurrencyPipe import.",
+          "code": "// FILE: product-catalog.component.ts\nimport { Component, Pipe, PipeTransform, computed, signal } from '@angular/core';\nimport { CurrencyPipe } from '@angular/common';\n\ntype Category = 'electronics' | 'home' | 'books';\ninterface Product {\n  id: string;\n  title: string;\n  category: Category;\n  amount: number;\n  currency: 'USD';\n  inStock: boolean;\n}\n\n@Pipe({ name: 'categoryLabel', standalone: true, pure: true })\nexport class CategoryLabelPipe implements PipeTransform {\n  transform(value: Category): string {\n    const labels: Record<Category, string> = {\n      electronics: 'Electronics', home: 'Home & Living', books: 'Books'\n    };\n    return labels[value];\n  }\n}\n\n@Component({\n  selector: 'app-product-catalog',\n  standalone: true,\n  imports: [CurrencyPipe, CategoryLabelPipe],\n  template: `\n    <h2>Product catalog</h2>\n    <label for=\"catalog-search\">Search products</label>\n    <input id=\"catalog-search\" type=\"search\" [value]=\"query()\"\n           (input)=\"updateQuery($event)\" />\n    @if (query().trim()) {\n      <p>Results for: {{ query() }}</p>\n    }\n    <ul aria-label=\"Matching products\">\n      @for (product of filteredProducts(); track product.id) {\n        <li>\n          <strong>{{ product.title }}</strong>\n          <span>{{ product.category | categoryLabel }}</span>\n          <span>{{ product.amount | currency:product.currency }}</span>\n          @if (!product.inStock) { <span>Out of stock</span> }\n        </li>\n      } @empty {\n        <li>No matching products.</li>\n      }\n    </ul>\n  `\n})\nexport class ProductCatalogComponent {\n  readonly query = signal('');\n  readonly products: Product[] = [\n    { id: 'p-1', title: 'Notebook', category: 'books', amount: 12, currency: 'USD', inStock: true },\n    { id: 'p-2', title: 'Desk lamp', category: 'home', amount: 29, currency: 'USD', inStock: false },\n    { id: 'p-3', title: 'USB hub', category: 'electronics', amount: 35, currency: 'USD', inStock: true }\n  ];\n  readonly filteredProducts = computed(() => {\n    const term = this.query().trim().toLowerCase();\n    return this.products.filter(p => p.title.toLowerCase().includes(term));\n  });\n\n  updateQuery(event: Event): void {\n    const input = event.target as HTMLInputElement;\n    this.query.set(input.value);\n  }\n}\n",
+          "explanation": [
+            "signal stores query state; computed derives filtered product records",
+            "(input) changes the Signal and [value] reflects component state",
+            "@if shows the current query and @for tracks product.id",
+            "@empty displays an accessible no-results message",
+            "CurrencyPipe and CategoryLabelPipe transform display-only values"
+          ]
+        },
+        "projectExperience": {
+          "status": "hypothetical",
+          "example": "In an e-commerce practice project I would implement this small catalog first, then move filtering to a paginated backend endpoint when product volume grows.",
+          "evidenceToCollect": [
+            "Source and test commits proving filtering and no-results handling",
+            "Screenshots of in-stock/out-of-stock and formatted prices",
+            "Document describing server-side search and checkout pricing as future production requirements"
+          ],
+          "doNotClaim": "This is a proposed practice-project implementation; do not claim production deployment, customer usage or measured performance until independently demonstrated."
+        },
+        "pitfalls": [
+          "Rendering thousands of records entirely in the browser causes unnecessary work",
+          "Using index as tracking key can confuse row identity after reordering",
+          "CurrencyPipe must have the correct currency and locale for users",
+          "Client-side catalog prices cannot be trusted at checkout",
+          "Mutating product records in a formatting pipe corrupts source data"
+        ],
+        "whenNotToUse": [
+          "Do not use full in-browser filtering for huge catalogs when server pagination is required",
+          "Do not place business pricing, taxes or payment authorization in the view",
+          "Do not add state management libraries for a three-item local demonstration without a compelling need"
+        ],
+        "alternatives": [
+          {
+            "name": "Server-side filtered API",
+            "bestFor": "Large catalogs, authoritative filtering and pagination",
+            "tradeoff": "Adds network latency and backend work; needs loading/error handling"
+          },
+          {
+            "name": "Reactive Forms search control",
+            "bestFor": "Complex form validation or composition",
+            "tradeoff": "More setup for a single input"
+          },
+          {
+            "name": "Pre-rendered static catalog",
+            "bestFor": "Mostly static SEO content",
+            "tradeoff": "Less flexibility for live interactive search"
+          }
+        ],
+        "testing": {
+          "strategy": "Use Angular TestBed with component fixtures for rendered DOM and event assertions; run an Angular build to check templates; add browser tests for keyboard and interaction behavior.",
+          "testCases": [
+            {
+              "case": "Initial catalog",
+              "expected": "All three products display with unique IDs and formatted USD prices"
+            },
+            {
+              "case": "Filter match",
+              "expected": "Typing lamp shows only Desk lamp"
+            },
+            {
+              "case": "No matches",
+              "expected": "Typing zzz shows No matching products"
+            },
+            {
+              "case": "Stock label",
+              "expected": "Desk lamp displays Out of stock"
+            },
+            {
+              "case": "Custom pipe",
+              "expected": "Category electronics displays Electronics"
+            }
+          ],
+          "negativeCases": [
+            "Whitespace-only input restores the full list",
+            "Unknown currency/invalid price requires explicit validation outside the UI",
+            "Search term containing special characters displays as text, not HTML"
+          ],
+          "verificationCommand": "ng test && ng build"
+        },
+        "followUps": {
+          "beginner": [
+            "What does track product.id accomplish?"
+          ],
+          "intermediate": [
+            "When should client-side filtering move to a backend API?"
+          ],
+          "advanced": [
+            "How would you debounce remote search and avoid stale HTTP responses?"
+          ],
+          "expert": [
+            "How would you architect a multi-region catalog with personalized pricing and inventory consistency?"
+          ]
+        },
+        "finalTakeaway": "Combine signals, stable template control flow and pure display formatting for a clean small catalog."
+      },
+      "learningOutcomes": [
+        "Build a functioning local product search",
+        "Reuse a pure pipe and CurrencyPipe",
+        "Explain the limits of client-side filtering for production commerce"
+      ],
+      "sourceNotes": {
+        "status": "authored-learning-material",
+        "verifiedAgainstRuntime": false,
+        "frameworkSpecific": true,
+        "authoritativeReferences": [
+          "https://angular.dev/guide/templates/control-flow",
+          "https://angular.dev/guide/templates/pipes",
+          "https://angular.dev/guide/signals",
+          "https://angular.dev/api/common/CurrencyPipe"
+        ],
+        "verificationScope": "Checked Angular API patterns against official documentation; TypeScript syntax/transpilation validated locally. Full Angular template compilation and browser execution not performed in this environment."
+      }
+    }
+  ]
+}
